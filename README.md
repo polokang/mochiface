@@ -27,7 +27,7 @@
 
 - Node.js 18+
 - Docker & Docker Compose
-- MongoDB (通过 Docker 提供)
+- 远程 MongoDB 数据库 (MongoDB Atlas 或自建)
 
 ## 🛠️ 快速开始
 
@@ -51,8 +51,8 @@ cp env.example .env
 NODE_ENV=development
 PORT=3000
 
-# 数据库配置
-MONGODB_URI=mongodb://localhost:27017/mochiface
+# 数据库配置 - 使用远程 MongoDB
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/mochiface
 
 # JWT 配置
 JWT_SECRET=your-super-secret-jwt-key-here
@@ -88,8 +88,9 @@ docker-compose logs -f
 # 安装依赖
 npm install
 
-# 启动 MongoDB (使用 Docker)
-docker run -d -p 27017:27017 --name mongo mongo:7.0
+# 配置环境变量 (确保 MONGODB_URI 指向远程数据库)
+cp env.example .env
+# 编辑 .env 文件，填入远程 MongoDB 连接字符串
 
 # 启动开发服务器
 npm run dev
@@ -178,8 +179,9 @@ mochiface/
 ## 🐳 Docker 服务
 
 - **app**: Next.js 应用 (端口 3000)
-- **mongo**: MongoDB 数据库 (端口 27017)
 - **nginx**: 反向代理服务器 (端口 80)
+
+> **注意**: 数据库通过 MONGODB_URI 环境变量连接远程 MongoDB 服务
 
 ## 📝 使用说明
 

@@ -8,25 +8,11 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongo:27017/mochiface
+      - MONGODB_URI=${MONGODB_URI}
       - JWT_SECRET=${JWT_SECRET}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-    depends_on:
-      - mongo
     volumes:
       - ./public/images:/app/public/images
-    restart: unless-stopped
-
-  # MongoDB 数据库
-  mongo:
-    image: mongo:7.0
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_DATABASE=mochiface
-    volumes:
-      - mongo_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     restart: unless-stopped
 
   # Nginx 反向代理
@@ -41,6 +27,3 @@ services:
     depends_on:
       - app
     restart: unless-stopped
-
-volumes:
-  mongo_data:
