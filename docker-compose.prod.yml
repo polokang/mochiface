@@ -6,11 +6,10 @@ services:
     image: ${DOCKER_HUB_USERNAME}/mochiface:latest
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=${MONGODB_URI}
-      - JWT_SECRET=${JWT_SECRET}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     volumes:
       - ./public/images:/app/public/images
     restart: unless-stopped

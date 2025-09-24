@@ -41,6 +41,10 @@ cd mochiface
 ### 2. 配置环境变量
 
 ```bash
+# Windows
+copy env.example .env
+
+# Linux/Mac
 cp env.example .env
 ```
 
@@ -60,6 +64,8 @@ JWT_SECRET=your-super-secret-jwt-key-here
 # Google API 配置
 GOOGLE_API_KEY=your-google-api-key-here
 ```
+
+> **重要**: 确保 `.env` 文件在项目根目录下，Docker Compose 会自动读取此文件中的环境变量。
 
 ### 3. 使用 Docker Compose 启动
 
