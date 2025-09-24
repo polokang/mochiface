@@ -122,7 +122,7 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <Image
-                  src="/logo.png"
+                  src="/logo.svg"
                   alt="MochiFace Logo"
                   width={48}
                   height={48}
