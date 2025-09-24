@@ -10,6 +10,14 @@ export const metadata: Metadata = {
   title: 'MochiFace - AI 图片生成',
   description: '使用 AI 技术生成个性化图片，支持多种艺术风格',
   keywords: ['AI', '图片生成', '艺术', '创意', 'Google Nano Banana'],
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/logo.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/logo.svg',
+  },
 }
 
 export default function RootLayout({
