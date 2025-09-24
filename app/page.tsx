@@ -126,7 +126,9 @@ export default function Home() {
                   alt="MochiFace Logo"
                   width={48}
                   height={48}
+                  priority
                   className="drop-shadow-lg rounded-full"
+                  style={{ width: "auto", height: "auto" }}
                 />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping"></div>
               </div>
