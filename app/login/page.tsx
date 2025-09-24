@@ -108,7 +108,7 @@ export default function LoginPage() {
           <div className="flex items-center justify-center space-x-3 mb-4">
             <div className="relative">
               <Image
-                src="/logo.svg"
+                src="/logo.png"
                 alt="MochiFace Logo"
                 width={48}
                 height={48}
