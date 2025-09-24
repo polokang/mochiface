@@ -2,69 +2,71 @@
   <!-- 背景圆形 -->
   <circle cx="60" cy="60" r="55" fill="url(#gradient1)" stroke="url(#gradient2)" stroke-width="2"/>
   
-  <!-- 麻糬主体 -->
-  <ellipse cx="60" cy="70" rx="35" ry="25" fill="url(#mochiGradient)" stroke="url(#mochiStroke)" stroke-width="1.5"/>
+  <!-- 麻糬主体 - 更圆润的形状 -->
+  <ellipse cx="60" cy="70" rx="38" ry="28" fill="url(#mochiGradient)" stroke="url(#mochiStroke)" stroke-width="1.5"/>
   
-  <!-- 眼睛 -->
-  <path d="M50 65 Q52 63 54 65" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M66 65 Q68 63 70 65" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- 眼睛 - 更可爱的形状 -->
+  <path d="M48 65 Q50 62 52 65 Q54 68 52 65" stroke="#2D3748" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M68 65 Q70 62 72 65 Q74 68 72 65" stroke="#2D3748" stroke-width="2.5" fill="none" stroke-linecap="round"/>
   
-  <!-- 嘴巴 -->
-  <path d="M55 75 Q60 78 65 75" stroke="#2D3748" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- 嘴巴 - 更开心的笑容 -->
+  <path d="M55 78 Q60 82 65 78" stroke="#2D3748" stroke-width="2.5" fill="none" stroke-linecap="round"/>
   
-  <!-- 腮红 -->
-  <ellipse cx="45" cy="70" rx="4" ry="3" fill="url(#blushGradient)" opacity="0.8"/>
-  <ellipse cx="75" cy="70" rx="4" ry="3" fill="url(#blushGradient)" opacity="0.8"/>
+  <!-- 腮红 - 更明显 -->
+  <ellipse cx="42" cy="72" rx="6" ry="4" fill="url(#blushGradient)" opacity="0.9"/>
+  <ellipse cx="78" cy="72" rx="6" ry="4" fill="url(#blushGradient)" opacity="0.9"/>
   
-  <!-- 心形 -->
-  <path d="M60 25 C55 20, 45 20, 45 30 C45 20, 35 20, 35 30 C35 40, 60 55, 60 55 C60 55, 85 40, 85 30 C85 20, 75 20, 75 30 C75 20, 65 20, 60 25 Z" fill="url(#heartGradient)"/>
+  <!-- 心形 - 更立体 -->
+  <path d="M60 20 C54 15, 42 15, 42 28 C42 15, 30 15, 30 28 C30 42, 60 60, 60 60 C60 60, 90 42, 90 28 C90 15, 78 15, 78 28 C78 15, 66 15, 60 20 Z" fill="url(#heartGradient)"/>
   
-  <!-- 高光效果 -->
-  <ellipse cx="50" cy="60" rx="8" ry="6" fill="url(#highlightGradient)" opacity="0.6"/>
+  <!-- 高光效果 - 更明显 -->
+  <ellipse cx="50" cy="62" rx="12" ry="8" fill="url(#highlightGradient)" opacity="0.7"/>
   
   <!-- 渐变定义 -->
   <defs>
     <!-- 背景渐变 -->
     <radialGradient id="gradient1" cx="0.3" cy="0.3" r="0.7">
-      <stop offset="0%" stop-color="#F7FAFC" stop-opacity="0.8"/>
-      <stop offset="100%" stop-color="#E2E8F0" stop-opacity="0.6"/>
+      <stop offset="0%" stop-color="#F7FAFC" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#E2E8F0" stop-opacity="0.7"/>
     </radialGradient>
     
     <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#CBD5E0" stop-opacity="0.5"/>
-      <stop offset="100%" stop-color="#A0AEC0" stop-opacity="0.3"/>
+      <stop offset="0%" stop-color="#CBD5E0" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#A0AEC0" stop-opacity="0.4"/>
     </linearGradient>
     
-    <!-- 麻糬渐变 -->
+    <!-- 麻糬渐变 - 更粉嫩 -->
     <radialGradient id="mochiGradient" cx="0.3" cy="0.3" r="0.8">
       <stop offset="0%" stop-color="#FFF5F5"/>
-      <stop offset="30%" stop-color="#FED7D7"/>
-      <stop offset="70%" stop-color="#FBB6CE"/>
-      <stop offset="100%" stop-color="#F687B3"/>
+      <stop offset="20%" stop-color="#FED7D7"/>
+      <stop offset="50%" stop-color="#FBB6CE"/>
+      <stop offset="80%" stop-color="#F687B3"/>
+      <stop offset="100%" stop-color="#ED64A6"/>
     </radialGradient>
     
     <linearGradient id="mochiStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#E53E3E" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#C53030" stop-opacity="0.2"/>
+      <stop offset="0%" stop-color="#E53E3E" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#C53030" stop-opacity="0.3"/>
     </linearGradient>
     
     <!-- 腮红渐变 -->
     <radialGradient id="blushGradient" cx="0.5" cy="0.5" r="0.8">
-      <stop offset="0%" stop-color="#FED7D7" stop-opacity="0.8"/>
-      <stop offset="100%" stop-color="#FBB6CE" stop-opacity="0.6"/>
+      <stop offset="0%" stop-color="#FED7D7" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FBB6CE" stop-opacity="0.7"/>
     </radialGradient>
     
-    <!-- 心形渐变 -->
+    <!-- 心形渐变 - 更鲜艳 -->
     <radialGradient id="heartGradient" cx="0.3" cy="0.3" r="0.8">
       <stop offset="0%" stop-color="#FF6B6B"/>
-      <stop offset="50%" stop-color="#EE5A52"/>
-      <stop offset="100%" stop-color="#E53E3E"/>
+      <stop offset="30%" stop-color="#EE5A52"/>
+      <stop offset="70%" stop-color="#E53E3E"/>
+      <stop offset="100%" stop-color="#C53030"/>
     </radialGradient>
     
     <!-- 高光渐变 -->
     <radialGradient id="highlightGradient" cx="0.2" cy="0.2" r="0.8">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.3"/>
     </radialGradient>
   </defs>
 </svg>

@@ -27,6 +27,8 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [customLogo, setCustomLogo] = useState<string | null>(null)
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
   const { user, logout, credits } = useAuth()
   const router = useRouter()
 
@@ -39,6 +41,18 @@ export default function Home() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      // 验证文件类型
+      if (!file.type.startsWith('image/')) {
+        toast.error('请选择图片文件')
+        return
+      }
+
+      // 验证文件大小 (最大 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('图片大小不能超过 10MB')
+        return
+      }
+
       setSelectedFile(file)
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -90,6 +104,45 @@ export default function Home() {
     router.push('/login')
   }
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('请选择图片文件')
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('文件大小不能超过 2MB')
+      return
+    }
+
+    setIsUploadingLogo(true)
+    const formData = new FormData()
+    formData.append('logo', file)
+
+    try {
+      const response = await fetch('/api/upload-logo', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setCustomLogo(data.logoUrl)
+        toast.success('Logo 上传成功！')
+      } else {
+        toast.error(data.error || '上传失败')
+      }
+    } catch (error) {
+      toast.error('网络错误，请重试')
+    } finally {
+      setIsUploadingLogo(false)
+    }
+  }
+
   if (!user) {
     return null
   }
@@ -108,15 +161,35 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Image
-                  src="/logo.svg"
-                  alt="MochiFace Logo"
-                  width={48}
-                  height={48}
-                  className="drop-shadow-lg"
-                />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping"></div>
+              <div className="relative group">
+                <div className="relative">
+                  <Image
+                    src={customLogo || "/logo.svg"}
+                    alt="MochiFace Logo"
+                    width={48}
+                    height={48}
+                    className="drop-shadow-lg rounded-full"
+                  />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-pink-400 rounded-full animate-ping"></div>
+                </div>
+                {/* Logo 上传按钮 */}
+                <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <label className="cursor-pointer">
+                    <Upload className="h-6 w-6 text-white" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                      disabled={isUploadingLogo}
+                    />
+                  </label>
+                </div>
+                {isUploadingLogo && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                  </div>
+                )}
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
@@ -178,12 +251,19 @@ export default function Home() {
                 <div className="space-y-3">
                   <Label className="text-gray-700 font-medium">预览</Label>
                   <div className="relative group">
-                    <img
-                      src={previewImage}
-                      alt="预览"
-                      className="w-full h-64 object-cover rounded-2xl border border-white/30 shadow-lg group-hover:shadow-xl transition-all duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative overflow-hidden rounded-2xl border border-white/30 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                      <img
+                        src={previewImage}
+                        alt="预览"
+                        className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="glass-bg px-2 py-1 rounded-lg text-xs text-white">
+                          📷 原始图片
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -241,15 +321,17 @@ export default function Home() {
               {generatedImage ? (
                 <div className="space-y-4">
                   <div className="relative group">
-                    <img
-                      src={generatedImage}
-                      alt="生成的图片"
-                      className="w-full h-64 object-cover rounded-2xl border border-white/30 shadow-lg group-hover:shadow-xl transition-all duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="glass-bg px-2 py-1 rounded-lg text-xs text-white">
-                        ✨ AI 生成
+                    <div className="relative overflow-hidden rounded-2xl border border-white/30 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                      <img
+                        src={generatedImage}
+                        alt="生成的图片"
+                        className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="glass-bg px-2 py-1 rounded-lg text-xs text-white">
+                          ✨ AI 生成
+                        </div>
                       </div>
                     </div>
                   </div>
