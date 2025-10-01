@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Navbar } from '@/components/navbar'
 import { Upload, Image as ImageIcon, Sparkles, AlertCircle } from 'lucide-react'
-import { isValidImageType, isValidImageSize } from '@/lib/utils'
+import { isValidImageType, isValidImageSize, formatFileSizeMB } from '@/lib/utils'
 
 interface ImageStyle {
   id: string
@@ -69,6 +69,10 @@ export default function UploadPage() {
     // 创建预览
     const url = URL.createObjectURL(file)
     setPreviewUrl(url)
+    
+    // 立即显示文件大小信息
+    const fileSizeMB = formatFileSizeMB(file.size)
+    setSuccess(`图片已选择 (${fileSizeMB})`)
   }
 
   const handleUpload = async () => {
@@ -92,7 +96,7 @@ export default function UploadPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('Image uploaded successfully!')
+        setSuccess('图片上传成功！正在生成中...')
         // Automatically start generation
         handleGenerate(data.url)
       } else {

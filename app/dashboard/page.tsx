@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Navbar } from '@/components/navbar'
 import { ImageUpload } from '@/components/image-upload'
 import { ImageIcon, Download, RefreshCw, AlertCircle, CheckCircle, Clock, Upload, X, Trash2 } from 'lucide-react'
+import { formatFileSizeMB } from '@/lib/utils'
 import Link from 'next/link'
 
 interface GeneratedImage {
@@ -105,8 +106,9 @@ export default function DashboardPage() {
     document.body.removeChild(link)
   }
 
-  const handleUploadSuccess = (imageUrl: string) => {
-    setUploadSuccess('Image uploaded successfully!')
+  const handleUploadSuccess = (imageUrl: string, fileSize?: number) => {
+    const fileSizeText = fileSize ? ` (${formatFileSizeMB(fileSize)})` : ''
+    setUploadSuccess(`Image uploaded successfully!${fileSizeText}`)
     setUploadError('')
     setShowUploadModal(false)
     

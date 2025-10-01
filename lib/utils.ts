@@ -31,6 +31,14 @@ export function formatFileSize(bytes: number): string {
 }
 
 /**
+ * Format file size in MB
+ */
+export function formatFileSizeMB(bytes: number): string {
+  const mb = bytes / (1024 * 1024)
+  return parseFloat(mb.toFixed(2)) + 'M'
+}
+
+/**
  * Validate image file type
  */
 export function isValidImageType(file: File): boolean {

@@ -4,8 +4,17 @@ import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
 
+// 格式化文件大小
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
 interface ImageUploadProps {
-  onUploadSuccess: (imageUrl: string) => void
+  onUploadSuccess: (imageUrl: string, fileSize?: number) => void
   onUploadError: (error: string) => void
   disabled?: boolean
 }
@@ -14,6 +23,7 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [fileSize, setFileSize] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,6 +42,9 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
       }
 
       setSelectedFile(file)
+      
+      // 设置文件大小
+      setFileSize(formatFileSize(file.size))
       
       // Create preview
       const reader = new FileReader()
@@ -62,11 +75,12 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
         throw new Error(data.error || 'Upload failed')
       }
 
-      onUploadSuccess(data.url)
+      onUploadSuccess(data.url, selectedFile.size)
       
       // Reset state
       setSelectedFile(null)
       setPreview(null)
+      setFileSize('')
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -81,6 +95,7 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
   const handleRemove = () => {
     setSelectedFile(null)
     setPreview(null)
+    setFileSize('')
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -126,6 +141,13 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
               <X className="h-4 w-4" />
             </Button>
           </div>
+          
+          {/* 显示文件大小信息 */}
+          {fileSize && (
+            <div className="text-sm text-gray-600 text-center">
+              文件大小: {fileSize}
+            </div>
+          )}
           
           <div className="flex space-x-2">
             <Button
