@@ -199,33 +199,43 @@ export default function DashboardPage() {
       
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 My Works
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 View and manage your stylized avatar generation history
               </p>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
               <Link href="/upload">
-                <Button>
+                <Button className="w-full sm:w-auto">
                   <ImageIcon className="mr-2 h-4 w-4" />
-                  Generate New Avatar
+                  <span className="hidden sm:inline">Generate New Avatar</span>
+                  <span className="sm:hidden">Generate</span>
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowUploadModal(true)}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Image
-              </Button>
-              <Button variant="outline" onClick={fetchImages}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowUploadModal(true)}
+                  className="flex-1 sm:flex-none"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Upload Image</span>
+                  <span className="sm:hidden">Upload</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={fetchImages}
+                  className="flex-1 sm:flex-none"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Refresh</span>
+                  <span className="sm:hidden">Refresh</span>
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -233,13 +243,13 @@ export default function DashboardPage() {
           {credits !== null && (
             <Card className="mb-8">
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                   <div>
                     <h3 className="text-lg font-semibold">Current Credits</h3>
-                    <p className="text-3xl font-bold text-blue-600">{credits}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-blue-600">{credits}</p>
                   </div>
                   <Link href="/rewards">
-                    <Button variant="outline">
+                    <Button variant="outline" className="w-full sm:w-auto">
                       Get More Credits
                     </Button>
                   </Link>
@@ -250,7 +260,7 @@ export default function DashboardPage() {
 
           {/* 作品列表 */}
           {loadingImages ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {[...Array(6)].map((_, i) => (
                 <Card key={i}>
                   <div className="h-48 bg-muted animate-pulse rounded-t-lg" />
@@ -280,7 +290,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {images.map((image) => (
                 <Card key={image.id}>
                   <div className="aspect-square relative">
@@ -299,7 +309,7 @@ export default function DashboardPage() {
                       {getStatusIcon(image.status)}
                     </div>
                   </div>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 sm:p-4">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">
@@ -317,7 +327,7 @@ export default function DashboardPage() {
                           {image.error_message}
                         </p>
                       )}
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                         {image.status === 'success' && image.result_image_url && (
                           <Button
                             size="sm"
@@ -326,6 +336,7 @@ export default function DashboardPage() {
                               image.result_image_url!,
                               `mochiface-${image.id}.jpg`
                             )}
+                            className="w-full sm:w-auto"
                           >
                             <Download className="mr-1 h-3 w-3" />
                             Download
@@ -335,7 +346,7 @@ export default function DashboardPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleDeleteClick(image)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="w-full sm:w-auto text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="mr-1 h-3 w-3" />
                           Delete
@@ -352,8 +363,8 @@ export default function DashboardPage() {
 
       {/* 上传模态框 */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Upload Image</h3>
               <Button
@@ -385,8 +396,8 @@ export default function DashboardPage() {
 
       {/* 删除确认对话框 */}
       {showDeleteModal && imageToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0 w-10 h-10 mx-auto bg-red-100 rounded-full flex items-center justify-center">
                 <Trash2 className="w-6 h-6 text-red-600" />
@@ -399,7 +410,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-500 mb-6">
                 Are you sure you want to delete this work? This action cannot be undone, and the image and related information will be permanently deleted.
               </p>
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                 <Button
                   variant="outline"
                   onClick={handleDeleteCancel}
@@ -434,7 +445,7 @@ export default function DashboardPage() {
 
       {/* 成功消息 */}
       {uploadSuccess && (
-        <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+        <div className="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
           {uploadSuccess}
         </div>
       )}
