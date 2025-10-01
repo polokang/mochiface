@@ -1,4 +1,5 @@
 import { createServerClient } from './supabase/server'
+import { createServiceClient } from './supabase/client'
 import { redirect } from 'next/navigation'
 import { Database } from './supabase/types'
 
@@ -55,11 +56,11 @@ export async function updateLastLogin(userId: string): Promise<void> {
 }
 
 /**
- * 检查用户名是否可用
+ * 检查用户名是否可用（用于 API 路由，不需要 cookies）
  */
 export async function isUsernameAvailable(username: string): Promise<boolean> {
   try {
-    const supabase = createServerClient()
+    const supabase = createServiceClient()
     
     const { data, error } = await supabase
       .from('profiles')

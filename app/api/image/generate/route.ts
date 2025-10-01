@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createServerClient()
+    const supabase = createServiceClient()
 
     // 创建生成记录
     const { data: generation, error: generationError } = await supabase
