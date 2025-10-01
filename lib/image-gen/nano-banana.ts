@@ -6,7 +6,6 @@ export class NanoBananaService implements ImageGenService {
 
   constructor() {
     const apiKey = process.env.GOOGLE_API_KEY
-    console.log('apiKey======================>', apiKey)
     if (apiKey && apiKey.length > 10) { // 基本验证
       try {
         this.genAI = new GoogleGenerativeAI(apiKey)
