@@ -88,8 +88,7 @@ export async function POST(request: NextRequest) {
       console.error('❌ Storage upload error:', error)
       console.error('错误详情:', {
         message: error.message,
-        statusCode: error.statusCode,
-        error: error.error
+        error: error
       })
       return NextResponse.json(
         { error: `上传失败: ${error.message}` },
