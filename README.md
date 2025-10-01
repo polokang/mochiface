@@ -1,35 +1,33 @@
-# 🍡 MochiFace - AI 图片生成平台
+# MochiFace - 头像风格化生成器
 
-一个基于 Next.js 和 Google Nano Banana API 的现代化 AI 图片生成平台，支持多种艺术风格转换。
+一个基于 AI 的头像风格化生成网站，支持多种艺术风格，让用户轻松创建独特的风格化头像。
 
-## ✨ 功能特性
+## 功能特性
 
-- 🎨 **多种艺术风格** - 支持动漫、写实、卡通、油画、水彩、素描等风格
-- 👤 **用户系统** - 完整的用户注册、登录和身份验证
-- 🪙 **积分系统** - 用户注册获得 3 积分，每次生成消耗 1 积分
-- 🔐 **安全认证** - 基于 JWT 的用户认证系统
-- 🗄️ **数据持久化** - MongoDB 数据库存储用户和生成记录
-- 🐳 **Docker 部署** - 完整的 Docker 和 Docker Compose 配置
-- 🌐 **Nginx 代理** - 80 端口反向代理，支持静态文件服务
-- 📱 **响应式设计** - 基于 Tailwind CSS 的现代化 UI
+- 🎨 **多种艺术风格**: 支持卡通、动漫、水彩、复古等多种风格
+- 🖼️ **高质量输出**: 使用先进的 AI 技术生成高分辨率头像
+- 💰 **积分系统**: 新用户赠送 3 积分，完成任务获得更多积分
+- 🔐 **安全认证**: 基于 Supabase Auth 的用户认证系统
+- 📱 **响应式设计**: 完美适配桌面和移动设备
+- 🐳 **Docker 支持**: 一键部署，开箱即用
 
-## 🚀 技术栈
+## 技术栈
 
-- **前端**: Next.js 14, React 18, TypeScript, Tailwind CSS
-- **后端**: Next.js API Routes, Node.js
-- **数据库**: MongoDB with Mongoose
-- **认证**: JWT (jsonwebtoken)
-- **密码加密**: bcryptjs
-- **部署**: Docker, Docker Compose, Nginx
-- **AI 服务**: Google Nano Banana API
+- **前端**: Next.js 14 (App Router) + React + TypeScript + TailwindCSS + shadcn/ui
+- **后端**: Next.js API Routes + Supabase
+- **数据库**: Supabase (PostgreSQL)
+- **存储**: Supabase Storage
+- **认证**: Supabase Auth
+- **图片生成**: Nano Banana API
+- **部署**: Docker + Docker Compose
 
-## 📋 环境要求
+## 快速开始
 
-- Node.js 18+
-- Docker & Docker Compose
-- 远程 MongoDB 数据库 (MongoDB Atlas 或自建)
+### 环境要求
 
-## 🛠️ 快速开始
+- Node.js 18+ 
+- Docker & Docker Compose (可选)
+- Supabase 账户
 
 ### 1. 克隆项目
 
@@ -38,188 +36,225 @@ git clone <repository-url>
 cd mochiface
 ```
 
-### 2. 配置环境变量
+### 2. 安装依赖
 
 ```bash
-# Windows
-copy env.example .env
-
-# Linux/Mac
-cp env.example .env
+npm install
 ```
 
-编辑 `.env` 文件，填入必要的配置：
+### 3. 配置环境变量
+
+复制 `.env.example` 为 `.env` 并填写配置：
+
+```bash
+cp .env.example .env
+```
+
+编辑 `.env` 文件：
 
 ```env
-# 应用配置
-NODE_ENV=development
-PORT=3000
+# Supabase 配置
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-# 数据库配置 - 使用远程 MongoDB
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/mochiface
+# 图片生成 API (Nano Banana)
+NANOBANANA_API_BASE=https://api.nanobanana.example/v1
+NANOBANANA_API_KEY=your_nanobanana_api_key
 
-# JWT 配置
-JWT_SECRET=your-super-secret-jwt-key-here
+# 奖励任务签名密钥
+REWARD_SIGNING_SECRET=your-long-random-signing-secret
 
-# Google API 配置
-GOOGLE_API_KEY=your-google-api-key-here
+# Next.js 配置
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-nextauth-secret
 ```
 
-> **重要**: 确保 `.env` 文件在项目根目录下，Docker Compose 会自动读取此文件中的环境变量。
+### 4. 设置 Supabase
 
-### 3. 使用 Docker Compose 启动
+1. 在 [Supabase](https://supabase.com) 创建新项目
+2. 启用 Storage 功能
+3. 创建两个存储桶：
+   - `uploads`: 存储用户上传的原始图片
+   - `results`: 存储生成的风格化图片
+4. 在 SQL 编辑器中执行 `supabase/schema.sql` 和 `supabase/policies.sql`
 
-```bash
-# 构建并启动所有服务
-docker-compose up -d
-
-# 查看服务状态
-docker-compose ps
-
-# 查看日志
-docker-compose logs -f
-```
-
-### 4. 访问应用
-
-- 应用地址: http://localhost
-- API 文档: http://localhost/api
-- 健康检查: http://localhost/health
-
-## 🔧 开发模式
-
-### 本地开发
+### 5. 运行开发服务器
 
 ```bash
-# 安装依赖
-npm install
-
-# 配置环境变量 (确保 MONGODB_URI 指向远程数据库)
-cp env.example .env
-# 编辑 .env 文件，填入远程 MongoDB 连接字符串
-
-# 启动开发服务器
 npm run dev
 ```
 
-### 构建和部署
+访问 [http://localhost:3000](http://localhost:3000) 查看应用。
+
+## Docker 部署
+
+### 使用 Docker Compose
 
 ```bash
-# 构建应用
-npm run build
+# 构建并启动服务
+docker-compose up -d
 
-# 启动生产服务器
-npm start
+# 查看日志
+docker-compose logs -f
 
-# 使用 Docker 构建镜像
-docker build -t mochiface .
-
-# 推送到 Docker Hub
-docker tag mochiface your-username/mochiface:latest
-docker push your-username/mochiface:latest
+# 停止服务
+docker-compose down
 ```
 
-## 📁 项目结构
+### 手动 Docker 构建
+
+```bash
+# 构建镜像
+docker build -t mochiface .
+
+# 运行容器
+docker run -p 3000:3000 --env-file .env mochiface
+```
+
+## 项目结构
 
 ```
 mochiface/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API 路由
-│   │   ├── auth/          # 认证相关 API
-│   │   ├── generate/      # 图片生成 API
-│   │   └── user/          # 用户相关 API
-│   ├── login/             # 登录页面
-│   ├── globals.css        # 全局样式
-│   ├── layout.tsx         # 根布局
-│   └── page.tsx           # 首页
+│   │   ├── auth/          # 认证相关
+│   │   ├── credits/       # 积分管理
+│   │   ├── image/         # 图片生成
+│   │   └── uploads/       # 文件上传
+│   ├── (auth)/            # 认证页面
+│   ├── dashboard/         # 用户仪表板
+│   ├── upload/            # 上传页面
+│   └── rewards/           # 奖励任务
 ├── components/            # React 组件
-│   └── ui/               # UI 组件库
+│   └── ui/               # shadcn/ui 组件
 ├── lib/                  # 工具库
+│   ├── supabase/         # Supabase 客户端
 │   ├── auth.ts           # 认证工具
-│   ├── auth-context.tsx  # 认证上下文
-│   ├── mongodb.ts        # 数据库连接
-│   └── utils.ts          # 通用工具
-├── models/               # 数据模型
-│   ├── User.ts           # 用户模型
-│   └── Generation.ts     # 生成记录模型
-├── public/               # 静态资源
-│   └── images/           # 图片存储
-├── docker-compose.yml    # Docker Compose 配置
-├── Dockerfile           # Docker 镜像配置
-├── nginx.conf           # Nginx 配置
-└── mongo-init.js        # MongoDB 初始化脚本
+│   ├── credits.ts        # 积分系统
+│   ├── image-gen/        # 图片生成服务
+│   └── rewards/          # 奖励系统
+├── supabase/             # 数据库模式
+│   ├── schema.sql        # 表结构
+│   └── policies.sql      # RLS 策略
+└── public/               # 静态资源
 ```
 
-## 🔌 API 接口
+## 数据库设计
+
+### 主要表结构
+
+- `profiles`: 用户资料和积分
+- `credit_transactions`: 积分流水记录
+- `generated_images`: 生成记录
+- `reward_tasks`: 奖励任务记录
+
+### 积分系统
+
+- 新用户注册赠送 3 积分
+- 每次生成图片消耗 1 积分
+- 完成奖励任务获得 1 积分
+- 所有积分变动都有详细记录
+
+## API 接口
 
 ### 认证接口
 
 - `POST /api/auth/register` - 用户注册
 - `POST /api/auth/login` - 用户登录
 
-### 用户接口
+### 积分接口
 
-- `GET /api/user/credits` - 获取用户积分
+- `GET /api/credits/me` - 获取当前积分
+- `POST /api/credits/grant` - 发放积分
 
-### 图片生成接口
+### 图片接口
 
-- `POST /api/generate` - 生成图片
+- `GET /api/image/styles` - 获取风格列表
+- `POST /api/image/generate` - 生成风格化图片
+- `POST /api/upload-image` - 上传图片
 
-## 🎨 支持的艺术风格
+## 安全特性
 
-- **anime** - 动漫风格
-- **realistic** - 写实风格
-- **cartoon** - 卡通风格
-- **oil_painting** - 油画风格
-- **watercolor** - 水彩风格
-- **sketch** - 素描风格
+- 行级安全策略 (RLS) 保护用户数据
+- 文件类型和大小验证
+- 积分系统防刷机制
+- 奖励任务签名验证
 
-## 🔒 安全特性
+## 合规说明
 
-- JWT Token 认证
-- 密码 bcrypt 加密
-- 文件上传验证
-- API 请求限制
-- 环境变量保护
+本项目实现了合规的奖励积分系统：
 
-## 🐳 Docker 服务
+- **禁止使用 Google AdSense 激励广告**（违反 AdSense 政策）
+- 使用自有奖励任务系统（观看站内视频）
+- 提供 `RewardProvider` 适配层，便于未来集成其他合规的广告网络
+- UI 文案不涉及 AdSense 激励
 
-- **app**: Next.js 应用 (端口 3000)
-- **nginx**: 反向代理服务器 (端口 80)
+## 开发指南
 
-> **注意**: 数据库通过 MONGODB_URI 环境变量连接远程 MongoDB 服务
+### 添加新的图片风格
 
-## 📝 使用说明
+1. 在 `lib/image-gen/index.ts` 中添加新风格
+2. 更新 `IMAGE_STYLES` 数组
+3. 在 `lib/image-gen/nano-banana.ts` 中实现对应的 API 调用
 
-1. **注册账户** - 新用户注册自动获得 3 个积分
-2. **上传图片** - 选择要转换的原始图片
-3. **选择风格** - 从 6 种艺术风格中选择一种
-4. **生成图片** - 点击生成按钮，消耗 1 积分
-5. **下载结果** - 生成完成后可下载新图片
+### 添加新的奖励任务
 
-## 🤝 贡献指南
+1. 在 `lib/rewards/self-hosted.ts` 中实现新的任务类型
+2. 更新前端页面添加新的任务选项
+3. 确保任务验证逻辑正确
 
-1. Fork 本项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+### 集成其他图片生成服务
+
+1. 实现 `ImageGenService` 接口
+2. 在 `lib/image-gen/` 目录下创建新的适配器
+3. 更新环境变量配置
+
+## 故障排除
+
+### 常见问题
+
+1. **Supabase 连接失败**
+   - 检查环境变量配置
+   - 确认 Supabase 项目状态
+
+2. **图片上传失败**
+   - 检查 Supabase Storage 配置
+   - 确认存储桶权限设置
+
+3. **积分系统异常**
+   - 检查数据库 RLS 策略
+   - 确认用户认证状态
+
+### 日志查看
+
+```bash
+# Docker 日志
+docker-compose logs -f web
+
+# 开发环境日志
+npm run dev
+```
+
+## 贡献指南
+
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
 3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 打开 Pull Request
 
-## 📄 许可证
+## 许可证
 
-MIT License - 查看 [LICENSE](LICENSE) 文件了解详情
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
-## 🆘 常见问题
+## 联系方式
 
-### Q: 如何获取 Google API Key？
-A: 请访问 Google Cloud Console 创建项目并启用相关 API 服务。
+如有问题或建议，请通过以下方式联系：
 
-### Q: 如何修改积分规则？
-A: 在 `models/User.ts` 中修改默认积分值，在 `app/api/generate/route.ts` 中修改消耗规则。
+- 创建 Issue
+- 发送邮件至 [your-email@example.com]
 
-### Q: 如何添加新的艺术风格？
-A: 在 `app/page.tsx` 的 `ART_STYLES` 数组中添加新风格，并在 `models/Generation.ts` 中更新枚举值。
+---
 
-## 📞 支持
-
-如有问题或建议，请提交 Issue 或联系开发团队。
+**注意**: 请确保在生产环境中使用强密码和安全的密钥配置。

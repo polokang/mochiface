@@ -1,59 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
-import User from '@/models/User'
-import { comparePassword, generateToken } from '@/lib/auth'
+import { createServerClient } from '@/lib/supabase/server'
+import { updateLastLogin } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB()
+    const { email, password } = await request.json()
 
-    const { username, password } = await request.json()
-
-    // 验证输入
-    if (!username || !password) {
+    if (!email || !password) {
       return NextResponse.json(
-        { error: '用户名和密码都是必填项' },
+        { error: '邮箱和密码都是必填项' },
         { status: 400 }
       )
     }
 
-    // 查找用户
-    const user = await User.findOne({ username })
-    if (!user) {
-      return NextResponse.json(
-        { error: '用户名或密码错误' },
-        { status: 401 }
-      )
-    }
+    const supabase = createServerClient()
 
-    // 验证密码
-    const isPasswordValid = await comparePassword(password, user.password)
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: '用户名或密码错误' },
-        { status: 401 }
-      )
-    }
-
-    // 生成 JWT token
-    const token = generateToken({
-      userId: user._id.toString(),
-      username: user.username,
+    // 登录用户
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
     })
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 401 }
+      )
+    }
+
+    if (!data.user) {
+      return NextResponse.json(
+        { error: '登录失败' },
+        { status: 401 }
+      )
+    }
+
+    // 更新最后登录时间
+    await updateLastLogin(data.user.id)
+
+    // 从用户元数据中获取用户名
+    const username = data.user.user_metadata?.username || email.split('@')[0]
 
     return NextResponse.json({
       message: '登录成功',
-      token,
       user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        credits: user.credits,
+        id: data.user.id,
+        username: username,
+        email: data.user.email
       }
     })
 
   } catch (error) {
-    console.error('登录错误:', error)
+    console.error('Login error:', error)
     return NextResponse.json(
       { error: '服务器内部错误' },
       { status: 500 }

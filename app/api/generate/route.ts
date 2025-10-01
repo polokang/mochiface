@@ -1,44 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
-import User from '@/models/User'
-import Generation from '@/models/Generation'
-import { verifyToken, getTokenFromRequest } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
+import { getMyCredits, deductCredits } from '@/lib/credits'
+import { createServiceClient } from '@/lib/supabase/client'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
-import axios from 'axios'
 
 export async function POST(request: NextRequest) {
   try {
-    await connectDB()
-
     // 验证用户身份
-    const token = getTokenFromRequest(request)
-    if (!token) {
-      return NextResponse.json(
-        { error: '未授权访问' },
-        { status: 401 }
-      )
-    }
-
-    const payload = verifyToken(token)
-    if (!payload) {
-      return NextResponse.json(
-        { error: '无效的 token' },
-        { status: 401 }
-      )
-    }
-
-    // 获取用户信息
-    const user = await User.findById(payload.userId)
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json(
-        { error: '用户不存在' },
-        { status: 404 }
+        { error: '未登录' },
+        { status: 401 }
       )
     }
 
     // 检查积分
-    if (user.credits < 1) {
+    const currentCredits = await getMyCredits(user.user_id)
+    if (currentCredits < 1) {
       return NextResponse.json(
         { error: '积分不足' },
         { status: 400 }
@@ -79,47 +59,41 @@ export async function POST(request: NextRequest) {
 
     try {
       // 这里需要根据实际的 Google Nano Banana API 文档来调整
-      const response = await axios.post(
-        'https://api.google.com/nano-banana/generate', // 示例 URL
-        {
-          image: buffer.toString('base64'),
-          style: style,
-          prompt: `Transform this image to ${style} style`
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${GOOGLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: 30000, // 30 秒超时
-        }
-      )
-
-      // 保存生成的图片
+      // 暂时模拟 API 调用
       const generatedImageName = `generated_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`
       const generatedImagePath = join(imageDir, generatedImageName)
-      const generatedImageBuffer = Buffer.from(response.data.image, 'base64')
-      await writeFile(generatedImagePath, generatedImageBuffer)
+      
+      // 模拟生成图片（复制原图作为示例）
+      await writeFile(generatedImagePath, buffer)
 
       // 扣除积分
-      user.credits -= 1
-      await user.save()
+      await deductCredits(user.user_id, 1, '图片生成', `generation_${Date.now()}`)
 
-      // 保存生成记录
-      const generation = new Generation({
-        userId: user._id,
-        originalImage: `/images/${originalImageName}`,
-        generatedImage: `/images/${generatedImageName}`,
-        style,
-        creditsUsed: 1,
-        status: 'completed',
-      })
-      await generation.save()
+      // 保存生成记录到 Supabase
+      const supabase = createServiceClient()
+      const { error: generationError } = await supabase
+        .from('generations')
+        .insert({
+          user_id: user.user_id,
+          original_image: `/images/${originalImageName}`,
+          generated_image: `/images/${generatedImageName}`,
+          style,
+          credits_used: 1,
+          status: 'completed',
+          created_at: new Date().toISOString()
+        })
+
+      if (generationError) {
+        console.error('保存生成记录失败:', generationError)
+      }
+
+      // 获取更新后的积分
+      const updatedCredits = await getMyCredits(user.user_id)
 
       return NextResponse.json({
         message: '图片生成成功',
         imageUrl: `/images/${generatedImageName}`,
-        credits: user.credits,
+        credits: updatedCredits,
       })
 
     } catch (apiError) {
