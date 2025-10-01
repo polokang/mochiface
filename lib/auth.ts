@@ -6,7 +6,7 @@ import { Database } from './supabase/types'
 export type User = Database['public']['Tables']['profiles']['Row']
 
 /**
- * 获取当前用户信息
+ * Get current user information
  */
 export async function getCurrentUser(): Promise<User | null> {
   const supabase = createServerClient()
@@ -31,7 +31,7 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 /**
- * 要求用户登录，未登录则重定向到登录页
+ * Require user to be logged in, redirect to login page if not
  */
 export async function requireAuth(): Promise<User> {
   const user = await getCurrentUser()
@@ -44,7 +44,7 @@ export async function requireAuth(): Promise<User> {
 }
 
 /**
- * 更新用户最后登录时间
+ * Update user's last login time
  */
 export async function updateLastLogin(userId: string): Promise<void> {
   const supabase = createServerClient()
@@ -56,7 +56,7 @@ export async function updateLastLogin(userId: string): Promise<void> {
 }
 
 /**
- * 检查用户名是否可用（用于 API 路由，不需要 cookies）
+ * Check if username is available (for API routes, no cookies needed)
  */
 export async function isUsernameAvailable(username: string): Promise<boolean> {
   try {
@@ -68,22 +68,22 @@ export async function isUsernameAvailable(username: string): Promise<boolean> {
       .eq('username', username)
       .maybeSingle()
     
-    // 如果没有错误且没有数据，说明用户名可用
+    // If no error and no data, username is available
     if (!error && !data) {
       return true
     }
     
-    // 如果有错误且是"未找到"错误，说明用户名可用
+    // If error is "not found", username is available
     if (error && error.code === 'PGRST116') {
       return true
     }
     
-    // 如果有数据，说明用户名已被使用
+    // If data exists, username is already taken
     if (data) {
       return false
     }
     
-    // 其他错误情况，返回 false 以安全起见
+    // For other errors, return false for safety
     console.error('Username check error:', error)
     return false
   } catch (error) {

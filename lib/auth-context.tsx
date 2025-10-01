@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = createClientComponent()
 
   useEffect(() => {
-    // 获取当前会话
+    // Get current session
     const getSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession()
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getSession()
 
-    // 监听认证状态变化
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id)
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      // 获取用户档案
+      // Get user profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      // 获取用户积分（从 profiles 表的 points 列）
+      // Get user credits (from profiles table points column)
       const credits = profile.points || 0
 
       const userData: User = {
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth 必须在 AuthProvider 内部使用')
+    throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
 }

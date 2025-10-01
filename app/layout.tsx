@@ -6,8 +6,8 @@ import { AuthProvider } from '@/components/auth-provider'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'MochiFace - 头像风格化生成器',
-  description: '上传你的头像，选择喜欢的风格，生成独特的风格化头像',
+  title: 'MochiFace - Avatar Style Generator',
+  description: 'Upload your avatar, choose your favorite style, and generate unique stylized avatars',
   icons: {
     icon: [
       { url: '/logo.png', sizes: '32x32', type: 'image/png' },
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="zh-CN">
+    <html lang="en">
       <head>
         <link rel="icon" href="/logo.png" type="image/png" sizes="32x32" />
         <link rel="icon" href="/logo.png" type="image/png" sizes="16x16" />

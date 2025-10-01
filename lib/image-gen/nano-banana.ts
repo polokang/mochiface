@@ -6,16 +6,16 @@ export class NanoBananaService implements ImageGenService {
 
   constructor() {
     const apiKey = process.env.GOOGLE_API_KEY
-    if (apiKey && apiKey.length > 10) { // 基本验证
+    if (apiKey && apiKey.length > 10) { // Basic validation
       try {
         this.genAI = new GoogleGenerativeAI(apiKey)
-        console.log('✅ Google Gemini API 初始化成功')
+        console.log('✅ Google Gemini API initialized successfully')
       } catch (error) {
-        console.warn('⚠️ Google Gemini API 初始化失败:', error)
+        console.warn('⚠️ Google Gemini API initialization failed:', error)
         this.genAI = null
       }
     } else {
-      console.warn('⚠️ GOOGLE_API_KEY 未设置或无效')
+      console.warn('⚠️ GOOGLE_API_KEY not set or invalid')
     }
   }
 
@@ -35,35 +35,35 @@ export class NanoBananaService implements ImageGenService {
     const isConfigValid = this.validateConfig()
     
     if (!isConfigValid) {
-      // 返回模拟的图片数据（1x1 像素的 PNG）
+      // Return mock image data (1x1 pixel PNG)
       const mockImageBuffer = Buffer.from([
-        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG 文件头
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
         0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 像素
-        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR 数据
+        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR data
         0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
-        0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT 数据
+        0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
         0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
       ])
       
-      console.log('使用模拟图片响应（Google Gemini API 未配置）')
+      console.log('Using mock image response (Google Gemini API not configured)')
       return { resultImageBuffer: mockImageBuffer }
     }
     
     try {
-      console.log('🎨 使用 Google Gemini 生成图片...')
+      console.log('🎨 Generating image using Google Gemini...')
       
-      // 从 Supabase Storage URL 下载源图片
+      // Download source image from Supabase Storage URL
       const sourceImageBuffer = await this.downloadImage(input.sourceImageUrl)
       
-      // 将图片转换为 base64
+      // Convert image to base64
       const base64Image = sourceImageBuffer.toString('base64')
       const mimeType = this.getMimeType(sourceImageBuffer)
       
-      // 构建提示词
+      // Build prompt
       const prompt = this.buildPrompt(input.style)
       
-      // 使用 Gemini 生成图片
+      // Use Gemini to generate image
       const model = this.genAI!.getGenerativeModel({ 
         model: "gemini-2.5-flash-image-preview",
         generationConfig: {
@@ -87,21 +87,21 @@ export class NanoBananaService implements ImageGenService {
       ])
       
       const response = await result.response
-      console.log('🔍 Gemini 响应结构:', JSON.stringify(response, null, 2))
+      console.log('🔍 Gemini response structure:', JSON.stringify(response, null, 2))
       
-      // 检查是否有文本响应
+      // Check for text response
       const textParts = response.candidates?.[0]?.content?.parts?.filter(part => part.text)
       if (textParts && textParts.length > 0) {
-        console.log('📝 Gemini 文本响应:', textParts.map(p => p.text).join('\n'))
+        console.log('📝 Gemini text response:', textParts.map(p => p.text).join('\n'))
       }
       
-      // 检查是否有图片响应
+      // Check for image response
       const imagePart = response.candidates?.[0]?.content?.parts?.find(part => part.inlineData)
       
       if (!imagePart?.inlineData) {
-        console.log('⚠️ Gemini 没有生成图片，尝试纯文本生成...')
+        console.log('⚠️ Gemini did not generate an image, trying plain text generation...')
         
-        // 尝试纯文本生成
+        // Try plain text generation
         const textOnlyModel = this.genAI!.getGenerativeModel({ 
           model: "gemini-1.5-pro",
           generationConfig: {
@@ -122,41 +122,41 @@ export class NanoBananaService implements ImageGenService {
         const textOnlyImagePart = textOnlyResponse.candidates?.[0]?.content?.parts?.find(part => part.inlineData)
         
         if (!textOnlyImagePart?.inlineData) {
-          console.log('⚠️ 纯文本生成也失败，返回模拟图片')
-          // 返回模拟图片
+          console.log('⚠️ Plain text generation also failed, returning mock image')
+          // Return mock image
           const mockImageBuffer = Buffer.from([
-            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG 文件头
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
             0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 像素
-            0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR 数据
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
+            0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR data
             0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
-            0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT 数据
+            0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
             0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
           ])
           return { resultImageBuffer: mockImageBuffer }
         }
         
         const resultBuffer = Buffer.from(textOnlyImagePart.inlineData.data, 'base64')
-        console.log('✅ Google Gemini 纯文本图片生成成功')
+        console.log('✅ Google Gemini plain text image generation successful')
         return { resultImageBuffer: resultBuffer }
       }
       
       const resultBuffer = Buffer.from(imagePart.inlineData.data, 'base64')
-      console.log('✅ Google Gemini 图片生成成功')
+      console.log('✅ Google Gemini image generation successful')
       return { resultImageBuffer: resultBuffer }
       
     } catch (error) {
       console.error('Google Gemini generation failed:', error)
-      console.log('🔄 回退到模拟图片响应')
+      console.log('🔄 Falling back to mock image response')
       
-      // 回退到模拟图片
+      // Fall back to mock image
       const mockImageBuffer = Buffer.from([
-        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG 文件头
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
         0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 像素
-        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR 数据
+        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR data
         0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
-        0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT 数据
+        0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
         0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
       ])
       
@@ -177,7 +177,7 @@ export class NanoBananaService implements ImageGenService {
   }
 
   private getMimeType(buffer: Buffer): string {
-    // 检查文件头来确定 MIME 类型
+    // Check file header to determine MIME type
     if (buffer[0] === 0xFF && buffer[1] === 0xD8) {
       return 'image/jpeg'
     } else if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
@@ -187,7 +187,7 @@ export class NanoBananaService implements ImageGenService {
     } else if (buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) {
       return 'image/webp'
     }
-    return 'image/jpeg' // 默认
+    return 'image/jpeg' // Default
   }
 
   private buildPrompt(style: string): string {
@@ -210,5 +210,5 @@ export class NanoBananaService implements ImageGenService {
   }
 }
 
-// 创建单例实例
+// Create singleton instance
 export const nanoBananaService = new NanoBananaService()

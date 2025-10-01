@@ -9,5 +9,5 @@ export interface RewardTask {
   name: string
   description: string
   points: number
-  duration?: number // 任务持续时间（秒）
+  duration?: number // Task duration (seconds)
 }

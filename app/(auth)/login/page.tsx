@@ -30,7 +30,7 @@ export default function LoginPage() {
     }
   }, [searchParams])
 
-  // 检查用户是否已登录，如果是则跳转到 dashboard
+  // Check if user is already logged in, redirect to dashboard if so
   useEffect(() => {
     if (!authLoading && user) {
       router.push('/dashboard')
@@ -43,7 +43,7 @@ export default function LoginPage() {
     setError('')
 
     try {
-      // 使用 Supabase Auth 直接登录
+      // Use Supabase Auth to login directly
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -55,7 +55,7 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        // 更新最后登录时间
+        // Update last login time
         try {
           await fetch('/api/auth/update-login', {
             method: 'POST',
@@ -70,10 +70,10 @@ export default function LoginPage() {
 
         router.push('/dashboard')
       } else {
-        setError('登录失败')
+        setError('Login failed')
       }
     } catch (error) {
-      setError('网络错误，请重试')
+      setError('Network error, please try again')
     } finally {
       setLoading(false)
     }
@@ -96,12 +96,12 @@ export default function LoginPage() {
         setLoading(false)
       }
     } catch (error) {
-      setError('Google 登录失败，请重试')
+      setError('Google login failed, please try again')
       setLoading(false)
     }
   }
 
-  // 如果正在检查用户状态，显示加载界面
+  // If checking user status, show loading interface
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -112,7 +112,7 @@ export default function LoginPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2 text-gray-600">检查登录状态...</span>
+                  <span className="ml-2 text-gray-600">Checking login status...</span>
                 </div>
               </CardContent>
             </Card>
@@ -130,32 +130,32 @@ export default function LoginPage() {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">登录</CardTitle>
+              <CardTitle className="text-2xl">Login</CardTitle>
               <CardDescription>
-                登录你的 MochiFace 账户
+                Sign in to your MochiFace account
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">邮箱地址</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="请输入邮箱地址"
+                    placeholder="Enter your email address"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">密码</Label>
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="请输入密码"
+                    placeholder="Enter your password"
                     required
                   />
                 </div>
@@ -171,7 +171,7 @@ export default function LoginPage() {
                   </div>
                 )}
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? '登录中...' : '登录'}
+                  {loading ? 'Logging in...' : 'Login'}
                 </Button>
               </form>
               
@@ -182,7 +182,7 @@ export default function LoginPage() {
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-background px-2 text-muted-foreground">
-                      或者
+                      or
                     </span>
                   </div>
                 </div>
@@ -212,14 +212,14 @@ export default function LoginPage() {
                       fill="#EA4335"
                     />
                   </svg>
-                  {loading ? '登录中...' : '使用 Google 登录'}
+                  {loading ? 'Logging in...' : 'Sign in with Google'}
                 </Button>
               </div>
               
               <div className="mt-4 text-center text-sm">
-                还没有账户？{' '}
+                Don't have an account?{' '}
                 <Link href="/register" className="text-blue-600 hover:underline">
-                  立即注册
+                  Register now
                 </Link>
               </div>
             </CardContent>

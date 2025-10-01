@@ -11,7 +11,7 @@ export async function DELETE(
     
     if (!user) {
       return NextResponse.json(
-        { error: '未登录' },
+        { error: 'Not logged in' },
         { status: 401 }
       )
     }
@@ -20,14 +20,14 @@ export async function DELETE(
 
     if (!imageId) {
       return NextResponse.json(
-        { error: '图片ID不能为空' },
+        { error: 'Image ID cannot be empty' },
         { status: 400 }
       )
     }
 
     const supabase = createServiceClient()
 
-    // 首先获取图片信息，确保用户有权限删除
+    // First get image info to ensure user has permission to delete
     const { data: image, error: fetchError } = await supabase
       .from('generated_images')
       .select('*')
@@ -37,19 +37,19 @@ export async function DELETE(
 
     if (fetchError || !image) {
       return NextResponse.json(
-        { error: '图片不存在或无权限删除' },
+        { error: 'Image not found or no permission to delete' },
         { status: 404 }
       )
     }
 
-    // 删除存储桶中的图片文件
+    // Delete image file from storage bucket
     if (image.result_image_url) {
       try {
-        // 从 URL 中提取文件路径
+        // Extract file path from URL
         const url = new URL(image.result_image_url)
         const pathParts = url.pathname.split('/')
         const bucketName = pathParts[3] // storage/v1/object/public/{bucket}/
-        const filePath = pathParts.slice(4).join('/') // 剩余部分作为文件路径
+        const filePath = pathParts.slice(4).join('/') // Remaining parts as file path
 
         if (bucketName && filePath) {
           const { error: deleteFileError } = await supabase.storage
@@ -57,17 +57,17 @@ export async function DELETE(
             .remove([filePath])
 
           if (deleteFileError) {
-            console.warn('删除存储文件失败:', deleteFileError)
-            // 不阻止数据库记录删除，只记录警告
+            console.warn('Failed to delete storage file:', deleteFileError)
+            // Don't prevent database record deletion, just log warning
           }
         }
       } catch (error) {
-        console.warn('解析图片URL失败:', error)
-        // 不阻止数据库记录删除
+        console.warn('Failed to parse image URL:', error)
+        // Don't prevent database record deletion
       }
     }
 
-    // 删除数据库记录
+    // Delete database record
     const { error: deleteError } = await supabase
       .from('generated_images')
       .delete()
@@ -76,19 +76,19 @@ export async function DELETE(
 
     if (deleteError) {
       return NextResponse.json(
-        { error: '删除失败' },
+        { error: 'Delete failed' },
         { status: 500 }
       )
     }
 
     return NextResponse.json({
-      message: '删除成功'
+      message: 'Delete successful'
     })
 
   } catch (error) {
     console.error('Delete image error:', error)
     return NextResponse.json(
-      { error: '删除失败' },
+      { error: 'Delete failed' },
       { status: 500 }
     )
   }

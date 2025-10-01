@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: '邮箱和密码都是必填项' },
+        { error: 'Email and password are required' },
         { status: 400 }
       )
     }
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const usernameAvailable = await isUsernameAvailable(username)
     if (!usernameAvailable) {
       return NextResponse.json(
-        { error: '该邮箱对应的用户名已被使用' },
+        { error: 'Username for this email is already taken' },
         { status: 400 }
       )
     }
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     if (!data.user) {
       return NextResponse.json(
-        { error: '注册失败' },
+        { error: 'Registration failed' },
         { status: 400 }
       )
     }
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: '注册成功！请检查您的邮箱并点击确认链接完成注册。',
+      message: 'Registration successful! Please check your email and click the confirmation link to complete registration.',
       email: email,
       needsConfirmation: true
     })
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Registration error:', error)
     return NextResponse.json(
-      { error: '服务器内部错误' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

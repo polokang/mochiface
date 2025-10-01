@@ -24,7 +24,7 @@ export default function RegisterPage() {
   const supabase = createClientComponent()
   const { user, loading: authLoading } = useAuth()
 
-  // 检查用户是否已登录，如果是则跳转到 dashboard
+  // Check if user is already logged in, redirect to dashboard if so
   useEffect(() => {
     if (!authLoading && user) {
       router.push('/dashboard')
@@ -52,7 +52,7 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || '注册失败')
+        setError(data.error || 'Registration failed')
         return
       }
 
@@ -60,10 +60,10 @@ export default function RegisterPage() {
         setRegisteredEmail(email)
         setSuccess(true)
       } else {
-        setError('注册失败，请重试')
+        setError('Registration failed, please try again')
       }
     } catch (error) {
-      setError('网络错误，请重试')
+      setError('Network error, please try again')
     } finally {
       setLoading(false)
     }
@@ -86,12 +86,12 @@ export default function RegisterPage() {
         setLoading(false)
       }
     } catch (error) {
-      setError('Google 登录失败，请重试')
+      setError('Google login failed, please try again')
       setLoading(false)
     }
   }
 
-  // 如果注册成功，显示邮箱确认页面
+  // If registration successful, show email confirmation page
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -104,25 +104,25 @@ export default function RegisterPage() {
                 <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
-                <CardTitle className="text-2xl text-green-600">注册成功！</CardTitle>
+                <CardTitle className="text-2xl text-green-600">Registration Successful!</CardTitle>
                 <CardDescription>
-                  请检查您的邮箱并点击确认链接完成注册
+                  Please check your email and click the confirmation link to complete registration
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center space-y-4">
                 <div className="flex items-center justify-center space-x-2 text-gray-600">
                   <Mail className="w-5 h-5" />
-                  <span>确认邮件已发送至：{registeredEmail}</span>
+                  <span>Confirmation email sent to: {registeredEmail}</span>
                 </div>
                 <p className="text-sm text-gray-500">
-                  如果没有收到邮件，请检查垃圾邮件文件夹
+                  If you don't receive the email, please check your spam folder
                 </p>
                 <div className="space-y-2">
                   <Button 
                     onClick={() => router.push('/login')} 
                     className="w-full"
                   >
-                    返回登录
+                    Back to Login
                   </Button>
                   <Button 
                     variant="outline" 
@@ -135,7 +135,7 @@ export default function RegisterPage() {
                     }}
                     className="w-full"
                   >
-                    重新注册
+                    Register Again
                   </Button>
                 </div>
               </CardContent>
@@ -146,7 +146,7 @@ export default function RegisterPage() {
     )
   }
 
-  // 如果正在检查用户状态，显示加载界面
+  // If checking user status, show loading interface
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -157,7 +157,7 @@ export default function RegisterPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2 text-gray-600">检查登录状态...</span>
+                  <span className="ml-2 text-gray-600">Checking login status...</span>
                 </div>
               </CardContent>
             </Card>
@@ -175,42 +175,42 @@ export default function RegisterPage() {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">注册</CardTitle>
+              <CardTitle className="text-2xl">Register</CardTitle>
               <CardDescription>
-                创建你的 MochiFace 账户，获得 3 个免费积分
+                Create your MochiFace account and get 3 free credits
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">邮箱地址</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="请输入邮箱地址"
+                    placeholder="Enter your email address"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">姓名（可选）</Label>
+                  <Label htmlFor="fullName">Full Name (Optional)</Label>
                   <Input
                     id="fullName"
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="请输入您的姓名"
+                    placeholder="Enter your full name"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">密码</Label>
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="请输入密码（至少6位）"
+                    placeholder="Enter password (at least 6 characters)"
                     required
                     minLength={6}
                   />
@@ -221,7 +221,7 @@ export default function RegisterPage() {
                   </div>
                 )}
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? '注册中...' : '注册'}
+                  {loading ? 'Registering...' : 'Register'}
                 </Button>
               </form>
               
@@ -232,7 +232,7 @@ export default function RegisterPage() {
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-background px-2 text-muted-foreground">
-                      或者
+                      or
                     </span>
                   </div>
                 </div>
@@ -262,14 +262,14 @@ export default function RegisterPage() {
                       fill="#EA4335"
                     />
                   </svg>
-                  {loading ? '登录中...' : '使用 Google 登录'}
+                  {loading ? 'Logging in...' : 'Sign in with Google'}
                 </Button>
               </div>
               
               <div className="mt-4 text-center text-sm">
-                已有账户？{' '}
+                Already have an account?{' '}
                 <Link href="/login" className="text-blue-600 hover:underline">
-                  立即登录
+                  Login now
                 </Link>
               </div>
             </CardContent>

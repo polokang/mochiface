@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未登录' },
+        { error: 'Not logged in' },
         { status: 401 }
       )
     }
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     if (!sourceImageUrl || !style) {
       return NextResponse.json(
-        { error: '源图片URL和风格都是必填项' },
+        { error: 'Source image URL and style are required' },
         { status: 400 }
       )
     }
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const hasCredits = await hasEnoughCredits(user.user_id, 1)
     if (!hasCredits) {
       return NextResponse.json(
-        { error: '积分不足，请先获取积分' },
+        { error: 'Insufficient credits, please get more credits first' },
         { status: 402 }
       )
     }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     if (generationError || !generation) {
       return NextResponse.json(
-        { error: '创建生成任务失败' },
+        { error: 'Failed to create generation task' },
         { status: 500 }
       )
     }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const deductSuccess = await deductCredits(user.user_id, 1, 'image_generation', generation.id)
     if (!deductSuccess) {
       return NextResponse.json(
-        { error: '积分扣减失败' },
+        { error: 'Failed to deduct credits' },
         { status: 500 }
       )
     }
@@ -71,13 +71,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       id: generation.id,
       status: 'queued',
-      message: '生成任务已创建，请稍后查看结果'
+      message: 'Generation task created, please check results later'
     })
 
   } catch (error) {
     console.error('Generate image error:', error)
     return NextResponse.json(
-      { error: '图片生成失败' },
+      { error: 'Image generation failed' },
       { status: 500 }
     )
   }
@@ -136,7 +136,7 @@ async function processImageGeneration(
       .from('generated_images')
       .update({
         status: 'failed',
-        error_message: error instanceof Error ? error.message : '未知错误'
+        error_message: error instanceof Error ? error.message : 'Unknown error'
       })
       .eq('id', generationId)
   }

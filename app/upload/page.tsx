@@ -53,13 +53,13 @@ export default function UploadPage() {
 
     // 验证文件类型
     if (!isValidImageType(file)) {
-      setError('只支持 JPG、PNG、WebP 格式的图片')
+      setError('Only JPG, PNG, WebP format images are supported')
       return
     }
 
     // 验证文件大小
     if (!isValidImageSize(file, 10)) {
-      setError('图片大小不能超过 10MB')
+      setError('Image size cannot exceed 10MB')
       return
     }
 
@@ -73,7 +73,7 @@ export default function UploadPage() {
 
   const handleUpload = async () => {
     if (!selectedFile || !selectedStyle) {
-      setError('请选择图片和风格')
+      setError('Please select an image and style')
       return
     }
 
@@ -92,14 +92,14 @@ export default function UploadPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('图片上传成功！')
-        // 自动开始生成
+        setSuccess('Image uploaded successfully!')
+        // Automatically start generation
         handleGenerate(data.url)
       } else {
-        setError(data.error || '上传失败')
+        setError(data.error || 'Upload failed')
       }
     } catch (error) {
-      setError('上传失败，请重试')
+      setError('Upload failed, please try again')
     } finally {
       setUploading(false)
     }
@@ -124,16 +124,16 @@ export default function UploadPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('生成任务已创建，请到我的作品页面查看结果')
-        // 跳转到仪表板
+        setSuccess('Generation task created, please check the results on My Works page')
+        // Navigate to dashboard
         setTimeout(() => {
           router.push('/dashboard')
         }, 2000)
       } else {
-        setError(data.error || '生成失败')
+        setError(data.error || 'Generation failed')
       }
     } catch (error) {
-      setError('生成失败，请重试')
+      setError('Generation failed, please try again')
     } finally {
       setGenerating(false)
     }
@@ -165,10 +165,10 @@ export default function UploadPage() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              生成风格化头像
+              Generate Stylized Avatar
             </h1>
             <p className="text-gray-600">
-              上传你的头像，选择喜欢的风格，AI 为你生成独特的风格化头像
+              Upload your avatar, choose your favorite style, and AI will generate unique stylized avatars for you
             </p>
           </div>
 
@@ -178,10 +178,10 @@ export default function UploadPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Upload className="mr-2 h-5 w-5" />
-                  上传头像
+                  Upload Avatar
                 </CardTitle>
                 <CardDescription>
-                  选择一张清晰的人像照片，支持 JPG、PNG、WebP 格式，最大 10MB
+                  Choose a clear portrait photo, supports JPG, PNG, WebP formats, maximum 10MB
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -194,7 +194,7 @@ export default function UploadPage() {
                       <div className="space-y-4">
                         <img
                           src={previewUrl}
-                          alt="预览"
+                          alt="Preview"
                           className="max-h-48 mx-auto rounded-lg"
                         />
                         <p className="text-sm text-gray-600">
@@ -205,9 +205,9 @@ export default function UploadPage() {
                       <div className="space-y-4">
                         <ImageIcon className="h-12 w-12 text-gray-400 mx-auto" />
                         <div>
-                          <p className="text-lg font-medium">点击上传图片</p>
+                          <p className="text-lg font-medium">Click to upload image</p>
                           <p className="text-sm text-gray-500">
-                            或拖拽图片到此处
+                            or drag and drop image here
                           </p>
                         </div>
                       </div>
@@ -229,16 +229,16 @@ export default function UploadPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Sparkles className="mr-2 h-5 w-5" />
-                  选择风格
+                  Choose Style
                 </CardTitle>
                 <CardDescription>
-                  选择你喜欢的艺术风格
+                  Choose your favorite artistic style
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Select value={selectedStyle} onValueChange={setSelectedStyle}>
                   <SelectTrigger>
-                    <SelectValue placeholder="请选择风格" />
+                    <SelectValue placeholder="Please select a style" />
                   </SelectTrigger>
                   <SelectContent>
                     {styles.map((style) => (
@@ -278,13 +278,13 @@ export default function UploadPage() {
                 disabled={!selectedFile || !selectedStyle || uploading || generating}
                 className="flex-1"
               >
-                {uploading ? '上传中...' : generating ? '生成中...' : '开始生成'}
+                {uploading ? 'Uploading...' : generating ? 'Generating...' : 'Start Generating'}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard')}
               >
-                查看我的作品
+                View My Works
               </Button>
             </div>
           </div>

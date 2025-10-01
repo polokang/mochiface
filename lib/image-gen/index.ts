@@ -16,47 +16,47 @@ export interface ImageStyle {
 export const IMAGE_STYLES: ImageStyle[] = [
   {
     id: 'cute_cartoon',
-    name: '可爱卡通',
-    description: '将头像转换为可爱的卡通风格'
+    name: 'Cute Cartoon',
+    description: 'Convert avatar to cute cartoon style'
   },
   {
     id: 'anime',
-    name: '动漫风格',
-    description: '日式动漫风格的头像'
+    name: 'Anime Style',
+    description: 'Japanese anime style avatar'
   },
   {
     id: 'watercolor',
-    name: '水彩画',
-    description: '水彩画风格的艺术效果'
+    name: 'Watercolor',
+    description: 'Watercolor painting style artistic effect'
   },
   {
     id: 'retro_pop',
-    name: '复古流行',
-    description: '80年代复古流行艺术风格'
+    name: 'Retro Pop',
+    description: '80s retro pop art style'
   },
   {
     id: 'flat',
-    name: '扁平化',
-    description: '现代扁平化设计风格'
+    name: 'Flat Design',
+    description: 'Modern flat design style'
   },
   {
     id: '3d_cute',
-    name: '3D可爱',
-    description: '立体可爱的3D风格'
+    name: '3D Cute',
+    description: 'Cute 3D style with depth'
   },
   {
     id: 'graffiti',
-    name: '涂鸦风格',
-    description: '街头涂鸦艺术风格'
+    name: 'Graffiti Style',
+    description: 'Street graffiti art style'
   },
   {
     id: 'steampunk',
-    name: '蒸汽朋克',
-    description: '蒸汽朋克科幻风格'
+    name: 'Steampunk',
+    description: 'Steampunk sci-fi style'
   },
   {
     id: 'papercut',
-    name: '剪纸艺术',
-    description: '传统剪纸艺术风格'
+    name: 'Paper Cut Art',
+    description: 'Traditional paper cut art style'
   }
 ];

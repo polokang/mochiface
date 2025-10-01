@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未登录' },
+        { error: 'Not logged in' },
         { status: 401 }
       )
     }
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Get credits error:', error)
     return NextResponse.json(
-      { error: '获取积分失败' },
+      { error: 'Failed to get credits' },
       { status: 500 }
     )
   }

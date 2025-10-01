@@ -9,7 +9,7 @@ export async function GET() {
   } catch (error) {
     console.error('Get styles error:', error)
     return NextResponse.json(
-      { error: '获取风格列表失败' },
+      { error: 'Failed to get styles list' },
       { status: 500 }
     )
   }

@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * 生成随机字符串
+ * Generate random string
  */
 export function generateRandomString(length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -18,7 +18,7 @@ export function generateRandomString(length: number): string {
 }
 
 /**
- * 格式化文件大小
+ * Format file size
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes'
@@ -31,7 +31,7 @@ export function formatFileSize(bytes: number): string {
 }
 
 /**
- * 验证图片文件类型
+ * Validate image file type
  */
 export function isValidImageType(file: File): boolean {
   const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -39,7 +39,7 @@ export function isValidImageType(file: File): boolean {
 }
 
 /**
- * 验证图片文件大小
+ * Validate image file size
  */
 export function isValidImageSize(file: File, maxSizeMB: number = 10): boolean {
   const maxSizeBytes = maxSizeMB * 1024 * 1024
@@ -47,7 +47,7 @@ export function isValidImageSize(file: File, maxSizeMB: number = 10): boolean {
 }
 
 /**
- * 生成 Supabase Storage URL
+ * Generate Supabase Storage URL
  */
 export function getSupabaseStorageUrl(bucket: string, path: string): string {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -55,7 +55,7 @@ export function getSupabaseStorageUrl(bucket: string, path: string): string {
 }
 
 /**
- * 延迟函数
+ * Delay function
  */
 export function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))

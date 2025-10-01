@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: '邮箱和密码都是必填项' },
+        { error: 'Email and password are required' },
         { status: 400 }
       )
     }
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     if (!data.user) {
       return NextResponse.json(
-        { error: '登录失败' },
+        { error: 'Login failed' },
         { status: 401 }
       )
     }
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const username = data.user.user_metadata?.username || email.split('@')[0]
 
     return NextResponse.json({
-      message: '登录成功',
+      message: 'Login successful',
       user: {
         id: data.user.id,
         username: username,
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
-      { error: '服务器内部错误' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

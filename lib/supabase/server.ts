@@ -1,7 +1,7 @@
 import { createServerClient as createSSRServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-// 服务端 Supabase 客户端
+// Server-side Supabase client
 export const createServerClient = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未登录' },
+        { error: 'Not logged in' },
         { status: 401 }
       )
     }
@@ -18,36 +18,36 @@ export async function POST(request: NextRequest) {
 
     if (!proof) {
       return NextResponse.json(
-        { error: '验证证明是必填项' },
+        { error: 'Verification proof is required' },
         { status: 400 }
       )
     }
 
-    // 验证奖励任务证明
+    // Verify reward task proof
     const isValid = await selfHostedRewardProvider.verifyProof(proof, user.user_id)
     
     if (!isValid) {
       return NextResponse.json(
-        { error: '验证证明无效或已过期' },
+        { error: 'Verification proof is invalid or expired' },
         { status: 400 }
       )
     }
 
-    // 发放积分
+    // Grant credits
     await addCredits(user.user_id, 1, 'reward_task')
 
-    // 获取更新后的积分
+    // Get updated credits
     const updatedCredits = await getMyCredits(user.user_id)
 
     return NextResponse.json({
-      message: '积分发放成功',
+      message: 'Credits granted successfully',
       points: updatedCredits
     })
 
   } catch (error) {
     console.error('Grant credits error:', error)
     return NextResponse.json(
-      { error: '积分发放失败' },
+      { error: 'Failed to grant credits' },
       { status: 500 }
     )
   }

@@ -19,21 +19,21 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      // 检查文件类型
+      // Check file type
       if (!file.type.startsWith('image/')) {
-        onUploadError('请选择图片文件')
+        onUploadError('Please select an image file')
         return
       }
 
-      // 检查文件大小 (5MB 限制)
+      // Check file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        onUploadError('图片大小不能超过 5MB')
+        onUploadError('Image size cannot exceed 5MB')
         return
       }
 
       setSelectedFile(file)
       
-      // 创建预览
+      // Create preview
       const reader = new FileReader()
       reader.onload = (e) => {
         setPreview(e.target?.result as string)
@@ -47,7 +47,7 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
 
     setUploading(true)
     try {
-      // 使用服务端 API 上传
+      // Use server API to upload
       const formData = new FormData()
       formData.append('file', selectedFile)
 
@@ -59,12 +59,12 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || '上传失败')
+        throw new Error(data.error || 'Upload failed')
       }
 
       onUploadSuccess(data.url)
       
-      // 重置状态
+      // Reset state
       setSelectedFile(null)
       setPreview(null)
       if (fileInputRef.current) {
@@ -72,7 +72,7 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
       }
     } catch (error) {
       console.error('Upload error:', error)
-      onUploadError(error instanceof Error ? error.message : '上传失败')
+      onUploadError(error instanceof Error ? error.message : 'Upload failed')
     } finally {
       setUploading(false)
     }
@@ -106,14 +106,14 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
           className="w-full"
         >
           <Upload className="mr-2 h-4 w-4" />
-          选择图片
+          Select Image
         </Button>
       ) : (
         <div className="space-y-4">
           <div className="relative">
             <img
               src={preview}
-              alt="预览"
+              alt="Preview"
               className="w-full h-48 object-cover rounded-lg border"
             />
             <Button
@@ -133,7 +133,7 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
               disabled={uploading || disabled}
               className="flex-1"
             >
-              {uploading ? '上传中...' : '上传图片'}
+              {uploading ? 'Uploading...' : 'Upload Image'}
             </Button>
             <Button
               type="button"
@@ -141,7 +141,7 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
               onClick={handleRemove}
               disabled={uploading}
             >
-              取消
+              Cancel
             </Button>
           </div>
         </div>

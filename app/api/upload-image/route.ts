@@ -3,80 +3,80 @@ import { createServiceClient } from '@/lib/supabase/client'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔍 开始处理上传请求...')
+    console.log('🔍 Starting upload request processing...')
     
     const formData = await request.formData()
     const file = formData.get('file') as File
     
     if (!file) {
-      console.log('❌ 没有选择文件')
+      console.log('❌ No file selected')
       return NextResponse.json(
-        { error: '没有选择文件' },
+        { error: 'No file selected' },
         { status: 400 }
       )
     }
 
-    console.log('📁 文件信息:', {
+    console.log('📁 File info:', {
       name: file.name,
       type: file.type,
       size: file.size
     })
 
-    // 检查文件类型
+    // Check file type
     if (!file.type.startsWith('image/')) {
-      console.log('❌ 文件类型不正确:', file.type)
+      console.log('❌ Invalid file type:', file.type)
       return NextResponse.json(
-        { error: '请选择图片文件' },
+        { error: 'Please select an image file' },
         { status: 400 }
       )
     }
 
-    // 检查文件大小 (5MB 限制)
+    // Check file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      console.log('❌ 文件过大:', file.size)
+      console.log('❌ File too large:', file.size)
       return NextResponse.json(
-        { error: '图片大小不能超过 5MB' },
+        { error: 'Image size cannot exceed 5MB' },
         { status: 400 }
       )
     }
 
-    console.log('🔧 创建 Supabase 客户端...')
+    console.log('🔧 Creating Supabase client...')
     
-    // 检查环境变量
-    console.log('🔍 环境变量检查:', {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ 已设置' : '❌ 未设置',
-      serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ 已设置' : '❌ 未设置'
+    // Check environment variables
+    console.log('🔍 Environment variables check:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Not set',
+      serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Not set'
     })
     
-    console.log('🔍 环境变量值:', {
+    console.log('🔍 Environment variable values:', {
       url: process.env.NEXT_PUBLIC_SUPABASE_URL,
       serviceKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY ? process.env.SUPABASE_SERVICE_ROLE_KEY.length : 0
     })
     
     const supabase = createServiceClient()
     
-    // 测试 Supabase 客户端
-    console.log('🧪 测试 Supabase 客户端...')
+    // Test Supabase client
+    console.log('🧪 Testing Supabase client...')
     const { data: buckets, error: bucketError } = await supabase.storage.listBuckets()
     
     if (bucketError) {
-      console.error('❌ 无法访问存储桶:', bucketError)
+      console.error('❌ Cannot access storage buckets:', bucketError)
       return NextResponse.json(
-        { error: `Supabase 连接失败: ${bucketError.message}` },
+        { error: `Supabase connection failed: ${bucketError.message}` },
         { status: 500 }
       )
     }
     
-    console.log('✅ Supabase 客户端正常，存储桶数量:', buckets.length)
+    console.log('✅ Supabase client working, bucket count:', buckets.length)
 
-    // 生成唯一文件名
+    // Generate unique filename
     const fileExt = file.name.split('.').pop()
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
     const filePath = `uploads/${fileName}`
 
-    console.log('📤 准备上传文件:', filePath)
+    console.log('📤 Preparing to upload file:', filePath)
 
-    // 上传到 Supabase Storage
+    // Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from('mochiface')
       .upload(filePath, file, {
@@ -86,19 +86,19 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('❌ Storage upload error:', error)
-      console.error('错误详情:', {
+      console.error('Error details:', {
         message: error.message,
         error: error
       })
       return NextResponse.json(
-        { error: `上传失败: ${error.message}` },
+        { error: `Upload failed: ${error.message}` },
         { status: 500 }
       )
     }
 
-    console.log('✅ 上传成功:', data.path)
+    console.log('✅ Upload successful:', data.path)
 
-    // 获取公共 URL
+    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from('mochiface')
       .getPublicUrl(filePath)
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json(
-      { error: '服务器内部错误' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

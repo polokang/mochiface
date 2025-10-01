@@ -4,7 +4,7 @@ import { Database } from './supabase/types'
 export type CreditTransaction = Database['public']['Tables']['credit_transactions']['Row']
 
 /**
- * 获取用户当前积分
+ * Get user's current credits
  */
 export async function getMyCredits(userId: string): Promise<number> {
   const supabase = createServerClient()
@@ -23,7 +23,7 @@ export async function getMyCredits(userId: string): Promise<number> {
 }
 
 /**
- * 增加积分
+ * Add credits
  */
 export async function addCredits(
   userId: string, 
@@ -46,7 +46,7 @@ export async function addCredits(
 }
 
 /**
- * 扣减积分
+ * Deduct credits
  */
 export async function deductCredits(
   userId: string, 
@@ -71,7 +71,7 @@ export async function deductCredits(
 }
 
 /**
- * 获取用户积分流水
+ * Get user credit transactions
  */
 export async function getCreditTransactions(
   userId: string, 
@@ -94,7 +94,7 @@ export async function getCreditTransactions(
 }
 
 /**
- * 检查用户是否有足够积分
+ * Check if user has enough credits
  */
 export async function hasEnoughCredits(userId: string, required: number): Promise<boolean> {
   const currentCredits = await getMyCredits(userId)

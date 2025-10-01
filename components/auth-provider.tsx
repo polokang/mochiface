@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [supabaseError, setSupabaseError] = useState<string | null>(null)
   const [supabase, setSupabase] = useState<any>(null)
   
-  // 安全地创建 Supabase 客户端
+  // Safely create Supabase client
   useEffect(() => {
     try {
       const client = createClientComponent()
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    // 获取当前会话
+    // Get current session
     const getSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession()
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getSession()
 
-    // 监听认证状态变化
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session: any) => {
         if (session?.user) {
@@ -99,12 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
-    // 直接创建用户数据，不依赖数据库查询
+    // Create user data directly, not relying on database query
     const userData: User = {
       id: supabaseUser.id,
       username: supabaseUser.email?.split('@')[0] || 'user',
       email: supabaseUser.email || '',
-      credits: 3, // 给新用户 3 个积分
+      credits: 3, // Give new users 3 credits
       full_name: supabaseUser.user_metadata?.full_name,
       avatar_url: supabaseUser.user_metadata?.avatar_url
     }
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     if (!supabase) {
-      console.error('❌ Supabase 客户端未初始化，无法登出')
+      console.error('❌ Supabase client not initialized, cannot sign out')
       setUser(null)
       return
     }
@@ -133,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     if (!supabase) {
-      console.error('❌ Supabase 客户端未初始化，无法登录')
+      console.error('❌ Supabase client not initialized, cannot sign in')
       throw new Error('Supabase client not initialized')
     }
 

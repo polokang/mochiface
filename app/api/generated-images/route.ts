@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未登录' },
+        { error: 'Not logged in' },
         { status: 401 }
       )
     }
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: '获取生成记录失败' },
+        { error: 'Failed to get generation records' },
         { status: 500 }
       )
     }
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Get generated images error:', error)
     return NextResponse.json(
-      { error: '获取生成记录失败' },
+      { error: 'Failed to get generation records' },
       { status: 500 }
     )
   }

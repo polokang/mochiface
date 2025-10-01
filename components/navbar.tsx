@@ -75,33 +75,33 @@ export function Navbar() {
           {user ? (
             <>
               <Link href="/upload" className="text-sm hover:text-primary">
-                生成头像
+                Generate Avatar
               </Link>
               <Link href="/dashboard" className="text-sm hover:text-primary">
-                我的作品
+                My Works
               </Link>
               <Link href="/rewards" className="text-sm hover:text-primary">
-                获取积分
+                Get Credits
               </Link>
               {credits !== null && (
                 <div className="text-sm text-muted-foreground">
-                  积分: {credits}
+                  Credits: {credits}
                 </div>
               )}
               <Button variant="outline" size="sm" onClick={handleSignOut}>
-                退出
+                Sign Out
               </Button>
             </>
           ) : (
             <>
               <Link href="/login">
                 <Button variant="ghost" size="sm">
-                  登录
+                  Login
                 </Button>
               </Link>
               <Link href="/register">
                 <Button size="sm">
-                  注册
+                  Register
                 </Button>
               </Link>
             </>

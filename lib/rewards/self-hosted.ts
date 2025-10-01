@@ -14,10 +14,10 @@ export class SelfHostedRewardProvider implements RewardProvider {
   }
 
   /**
-   * 生成奖励任务证明令牌
+   * Generate reward task proof token
    */
   async generateProof(userId: string, taskType: string): Promise<string> {
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10分钟后过期
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // Token expires in 10 minutes
     const payload = {
       userId,
       taskType,
@@ -27,7 +27,7 @@ export class SelfHostedRewardProvider implements RewardProvider {
     
     const token = this.signPayload(payload)
     
-    // 将令牌存储到数据库
+    // Store token in database
     const supabase = createServerClient()
     await supabase
       .from('reward_tasks')
@@ -42,11 +42,11 @@ export class SelfHostedRewardProvider implements RewardProvider {
   }
 
   /**
-   * 验证奖励任务证明令牌
+   * Verify reward task proof token
    */
   async verifyProof(proof: string, userId: string): Promise<boolean> {
     try {
-      // 从数据库查找令牌
+      // Look up token in database
       const supabase = createServerClient()
       const { data: task, error } = await supabase
         .from('reward_tasks')
@@ -60,18 +60,18 @@ export class SelfHostedRewardProvider implements RewardProvider {
         return false
       }
 
-      // 检查是否过期
+      // Check if expired
       if (new Date(task.expires_at) < new Date()) {
         return false
       }
 
-      // 验证签名
+      // Verify signature
       const payload = this.parseToken(proof)
       if (!payload || !this.verifySignature(proof)) {
         return false
       }
 
-      // 标记为已使用
+      // Mark as used
       await supabase
         .from('reward_tasks')
         .update({ is_used: true })
@@ -131,5 +131,5 @@ export class SelfHostedRewardProvider implements RewardProvider {
   }
 }
 
-// 创建单例实例
+// Create singleton instance
 export const selfHostedRewardProvider = new SelfHostedRewardProvider()

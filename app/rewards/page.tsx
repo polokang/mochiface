@@ -60,11 +60,11 @@ export default function RewardsPage() {
           completeRewardTask(data.proof)
         }, 10000) // 10秒后完成任务
       } else {
-        setError(data.error || '启动任务失败')
+        setError(data.error || 'Failed to start task')
         setTaskInProgress(false)
       }
     } catch (error) {
-      setError('启动任务失败，请重试')
+      setError('Failed to start task, please try again')
       setTaskInProgress(false)
     }
   }
@@ -82,16 +82,16 @@ export default function RewardsPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('恭喜！你获得了 1 积分')
+        setSuccess('Congratulations! You earned 1 credit')
         setTaskCompleted(true)
         setTaskInProgress(false)
-        fetchCredits() // 刷新积分
+        fetchCredits() // Refresh credits
       } else {
-        setError(data.error || '任务完成失败')
+        setError(data.error || 'Task completion failed')
         setTaskInProgress(false)
       }
     } catch (error) {
-      setError('任务完成失败，请重试')
+      setError('Task completion failed, please try again')
       setTaskInProgress(false)
     }
   }
@@ -122,10 +122,10 @@ export default function RewardsPage() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              获取积分
+              Get Credits
             </h1>
             <p className="text-gray-600">
-              完成任务获得积分，用于生成更多风格化头像
+              Complete tasks to earn credits for generating more stylized avatars
             </p>
           </div>
 
@@ -134,7 +134,7 @@ export default function RewardsPage() {
             <Card className="mb-8">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold mb-2">当前积分</h3>
+                  <h3 className="text-lg font-semibold mb-2">Current Credits</h3>
                   <p className="text-4xl font-bold text-blue-600">{credits}</p>
                 </div>
               </CardContent>
@@ -146,10 +146,10 @@ export default function RewardsPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Gift className="mr-2 h-5 w-5" />
-                观看视频获得积分
+                Watch Video to Earn Credits
               </CardTitle>
               <CardDescription>
-                观看一段简短的介绍视频，完成后可获得 1 积分
+                Watch a short introduction video and earn 1 credit upon completion
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -159,27 +159,27 @@ export default function RewardsPage() {
                     <Play className="h-8 w-8 text-blue-600" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2">
-                    MochiFace 功能介绍
+                    MochiFace Feature Introduction
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    了解如何使用 MochiFace 生成独特的风格化头像
+                    Learn how to use MochiFace to generate unique stylized avatars
                   </p>
                   <p className="text-sm text-gray-500">
-                    预计观看时间: 30 秒
+                    Estimated viewing time: 30 seconds
                   </p>
                 </div>
 
                 {taskInProgress && (
                   <div className="flex items-center justify-center space-x-2 text-blue-600 bg-blue-50 p-4 rounded-lg">
                     <Clock className="h-5 w-5 animate-spin" />
-                    <span>正在播放视频，请稍候...</span>
+                    <span>Playing video, please wait...</span>
                   </div>
                 )}
 
                 {taskCompleted && (
                   <div className="flex items-center justify-center space-x-2 text-green-600 bg-green-50 p-4 rounded-lg">
                     <CheckCircle className="h-5 w-5" />
-                    <span>任务完成！积分已发放</span>
+                    <span>Task completed! Credits have been awarded</span>
                   </div>
                 )}
 
@@ -202,7 +202,7 @@ export default function RewardsPage() {
                   disabled={taskInProgress || taskCompleted}
                   className="w-full"
                 >
-                  {taskInProgress ? '任务进行中...' : taskCompleted ? '任务已完成' : '开始观看视频'}
+                  {taskInProgress ? 'Task in progress...' : taskCompleted ? 'Task completed' : 'Start watching video'}
                 </Button>
               </div>
             </CardContent>
@@ -211,7 +211,7 @@ export default function RewardsPage() {
           {/* 其他获取积分的方式 */}
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>其他获取积分的方式</CardTitle>
+              <CardTitle>Other Ways to Get Credits</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -220,8 +220,8 @@ export default function RewardsPage() {
                     <CheckCircle className="h-4 w-4 text-green-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium">新用户注册</h4>
-                    <p className="text-sm text-gray-600">注册即送 3 积分</p>
+                    <h4 className="font-medium">New User Registration</h4>
+                    <p className="text-sm text-gray-600">Get 3 credits upon registration</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -229,8 +229,8 @@ export default function RewardsPage() {
                     <Gift className="h-4 w-4 text-blue-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium">完成奖励任务</h4>
-                    <p className="text-sm text-gray-600">观看视频获得 1 积分</p>
+                    <h4 className="font-medium">Complete Reward Tasks</h4>
+                    <p className="text-sm text-gray-600">Watch videos to earn 1 credit</p>
                   </div>
                 </div>
               </div>
@@ -243,7 +243,7 @@ export default function RewardsPage() {
               variant="outline"
               onClick={() => router.push('/dashboard')}
             >
-              返回我的作品
+              Back to My Works
             </Button>
           </div>
         </div>

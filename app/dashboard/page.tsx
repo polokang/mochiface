@@ -84,13 +84,13 @@ export default function DashboardPage() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'queued':
-        return '排队中'
+        return 'Queued'
       case 'running':
-        return '生成中'
+        return 'Generating'
       case 'success':
-        return '生成成功'
+        return 'Success'
       case 'failed':
-        return '生成失败'
+        return 'Failed'
       default:
         return status
     }
@@ -106,11 +106,11 @@ export default function DashboardPage() {
   }
 
   const handleUploadSuccess = (imageUrl: string) => {
-    setUploadSuccess('图片上传成功！')
+    setUploadSuccess('Image uploaded successfully!')
     setUploadError('')
     setShowUploadModal(false)
     
-    // 3秒后清除成功消息
+    // Clear success message after 3 seconds
     setTimeout(() => {
       setUploadSuccess('')
     }, 3000)
@@ -136,7 +136,7 @@ export default function DashboardPage() {
       })
 
       if (response.ok) {
-        // 从本地状态中移除已删除的图片
+        // Remove deleted image from local state
         setImages(prevImages => 
           prevImages.filter(img => img.id !== imageToDelete.id)
         )
@@ -144,12 +144,12 @@ export default function DashboardPage() {
         setImageToDelete(null)
       } else {
         const errorData = await response.json()
-        console.error('删除失败:', errorData.error)
-        alert('删除失败: ' + errorData.error)
+        console.error('Delete failed:', errorData.error)
+        alert('Delete failed: ' + errorData.error)
       }
     } catch (error) {
-      console.error('删除失败:', error)
-      alert('删除失败，请重试')
+      console.error('Delete failed:', error)
+      alert('Delete failed, please try again')
     } finally {
       setDeleting(false)
     }
@@ -160,7 +160,7 @@ export default function DashboardPage() {
     setImageToDelete(null)
   }
 
-  // 使用 useEffect 来处理重定向，避免在渲染过程中调用 setState
+  // Use useEffect to handle redirects, avoid calling setState during rendering
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
@@ -202,17 +202,17 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                我的作品
+                My Works
               </h1>
               <p className="text-gray-600">
-                查看和管理你的风格化头像生成记录
+                View and manage your stylized avatar generation history
               </p>
             </div>
             <div className="flex space-x-4">
               <Link href="/upload">
                 <Button>
                   <ImageIcon className="mr-2 h-4 w-4" />
-                  生成新头像
+                  Generate New Avatar
                 </Button>
               </Link>
               <Button 
@@ -220,11 +220,11 @@ export default function DashboardPage() {
                 onClick={() => setShowUploadModal(true)}
               >
                 <Upload className="mr-2 h-4 w-4" />
-                上传图片
+                Upload Image
               </Button>
               <Button variant="outline" onClick={fetchImages}>
                 <RefreshCw className="mr-2 h-4 w-4" />
-                刷新
+                Refresh
               </Button>
             </div>
           </div>
@@ -235,12 +235,12 @@ export default function DashboardPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">当前积分</h3>
+                    <h3 className="text-lg font-semibold">Current Credits</h3>
                     <p className="text-3xl font-bold text-blue-600">{credits}</p>
                   </div>
                   <Link href="/rewards">
                     <Button variant="outline">
-                      获取更多积分
+                      Get More Credits
                     </Button>
                   </Link>
                 </div>
@@ -266,15 +266,15 @@ export default function DashboardPage() {
               <CardContent className="text-center py-12">
                 <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  还没有生成任何头像
+                  No avatars generated yet
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  开始你的第一次头像风格化之旅吧！
+                  Start your first avatar stylization journey!
                 </p>
                 <Link href="/upload">
                   <Button>
                     <ImageIcon className="mr-2 h-4 w-4" />
-                    立即生成
+                    Generate Now
                   </Button>
                 </Link>
               </CardContent>
@@ -287,7 +287,7 @@ export default function DashboardPage() {
                     {image.status === 'success' && image.result_image_url ? (
                       <img
                         src={image.result_image_url}
-                        alt="生成结果"
+                        alt="Generated result"
                         className="w-full h-full object-cover rounded-t-lg"
                       />
                     ) : (
@@ -306,11 +306,11 @@ export default function DashboardPage() {
                           {getStatusText(image.status)}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {image.credits_spent} 积分
+                          {image.credits_spent} credits
                         </span>
                       </div>
                       <p className="text-sm text-gray-600">
-                        风格: {image.style}
+                        Style: {image.style}
                       </p>
                       {image.error_message && (
                         <p className="text-xs text-red-500">
@@ -328,7 +328,7 @@ export default function DashboardPage() {
                             )}
                           >
                             <Download className="mr-1 h-3 w-3" />
-                            下载
+                            Download
                           </Button>
                         )}
                         <Button
@@ -338,7 +338,7 @@ export default function DashboardPage() {
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="mr-1 h-3 w-3" />
-                          删除
+                          Delete
                         </Button>
                       </div>
                     </div>
@@ -355,7 +355,7 @@ export default function DashboardPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">上传图片</h3>
+              <h3 className="text-lg font-semibold">Upload Image</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -394,10 +394,10 @@ export default function DashboardPage() {
             </div>
             <div className="text-center">
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                确认删除
+                Confirm Delete
               </h3>
               <p className="text-sm text-gray-500 mb-6">
-                您确定要删除这个作品吗？此操作无法撤销，图片和相关信息将被永久删除。
+                Are you sure you want to delete this work? This action cannot be undone, and the image and related information will be permanently deleted.
               </p>
               <div className="flex space-x-3">
                 <Button
@@ -406,7 +406,7 @@ export default function DashboardPage() {
                   disabled={deleting}
                   className="flex-1"
                 >
-                  取消
+                  Cancel
                 </Button>
                 <Button
                   variant="destructive"
@@ -417,12 +417,12 @@ export default function DashboardPage() {
                   {deleting ? (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      删除中...
+                      Deleting...
                     </>
                   ) : (
                     <>
                       <Trash2 className="mr-2 h-4 w-4" />
-                      确认删除
+                      Confirm Delete
                     </>
                   )}
                 </Button>
