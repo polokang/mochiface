@@ -272,6 +272,17 @@ export default function RegisterPage() {
                   Login now
                 </Link>
               </div>
+              
+              <div className="mt-4 text-center text-xs text-gray-500">
+                By registering, you agree to our{' '}
+                <Link href="/terms" className="text-blue-600 hover:underline">
+                  Terms of Service
+                </Link>
+                {' '}and{' '}
+                <Link href="/privacy" className="text-blue-600 hover:underline">
+                  Privacy Policy
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>

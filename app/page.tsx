@@ -1,4 +1,5 @@
 import { Navbar } from '@/components/navbar'
+import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
@@ -138,17 +139,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h3 className="text-2xl font-bold mb-4">MochiFace</h3>
-          <p className="text-gray-400 mb-4">
-            Make avatars more fun - AI-powered avatar stylization generator
-          </p>
-          <p className="text-sm text-gray-500">
-            © 2024 MochiFace. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
