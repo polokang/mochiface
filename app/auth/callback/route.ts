@@ -37,6 +37,8 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}/login?message=请先确认您的邮箱地址`)
       }
 
+      // 使用环境变量中的站点 URL，如果没有则使用 origin
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       
@@ -46,6 +48,9 @@ export async function GET(request: Request) {
         redirectUrl = `${origin}${next}`
       } else if (forwardedHost) {
         redirectUrl = `https://${forwardedHost}${next}`
+      } else if (siteUrl && siteUrl !== 'http://localhost:3000') {
+        // 使用环境变量中的生产域名
+        redirectUrl = `${siteUrl}${next}`
       } else {
         redirectUrl = `${origin}${next}`
       }
@@ -80,5 +85,9 @@ export async function GET(request: Request) {
   }
 
   // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_error`)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin
+  const errorRedirectUrl = siteUrl && siteUrl !== 'http://localhost:3000' 
+    ? `${siteUrl}/login?error=auth_callback_error`
+    : `${origin}/login?error=auth_callback_error`
+  return NextResponse.redirect(errorRedirectUrl)
 }
