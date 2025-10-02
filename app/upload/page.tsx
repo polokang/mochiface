@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Navbar } from '@/components/navbar'
 import { Upload, Image as ImageIcon, Sparkles, AlertCircle } from 'lucide-react'
-import { isValidImageType, isValidImageSize, formatFileSizeMB } from '@/lib/utils'
+import { isValidImageType, isValidImageSize, formatFileSizeMB, smartCompressImage } from '@/lib/utils'
 
 interface ImageStyle {
   id: string
@@ -27,6 +27,7 @@ export default function UploadPage() {
   const [styles, setStyles] = useState<ImageStyle[]>([])
   const [uploading, setUploading] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [compressing, setCompressing] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -47,7 +48,7 @@ export default function UploadPage() {
     fetchStyles()
   }, [])
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -63,16 +64,31 @@ export default function UploadPage() {
       return
     }
 
-    setSelectedFile(file)
     setError('')
+    setCompressing(true)
     
-    // 创建预览
-    const url = URL.createObjectURL(file)
-    setPreviewUrl(url)
-    
-    // 立即显示文件大小信息
-    const fileSizeMB = formatFileSizeMB(file.size)
-    setSuccess(`图片已选择 (${fileSizeMB})`)
+    try {
+      // 智能压缩图片
+      const compressedFile = await smartCompressImage(file)
+      
+      setSelectedFile(compressedFile)
+      
+      // 创建预览
+      const url = URL.createObjectURL(compressedFile)
+      setPreviewUrl(url)
+      
+      // 显示压缩前后的文件大小对比
+      const originalSizeMB = formatFileSizeMB(file.size)
+      const compressedSizeMB = formatFileSizeMB(compressedFile.size)
+      const compressionRatio = ((file.size - compressedFile.size) / file.size * 100).toFixed(1)
+      
+      setSuccess(`图片已选择并压缩 (原始: ${originalSizeMB} → 压缩后: ${compressedSizeMB}, 减少 ${compressionRatio}%)`)
+    } catch (error) {
+      console.error('图片压缩失败:', error)
+      setError('图片压缩失败，请重试')
+    } finally {
+      setCompressing(false)
+    }
   }
 
   const handleUpload = async () => {
@@ -185,7 +201,7 @@ export default function UploadPage() {
                   Upload Avatar
                 </CardTitle>
                 <CardDescription>
-                  Choose a clear portrait photo, supports JPG, PNG, WebP formats, maximum 10MB
+                  Choose a clear portrait photo, supports JPG, PNG, WebP formats, maximum 10MB (will be automatically compressed)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -194,7 +210,12 @@ export default function UploadPage() {
                     className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    {previewUrl ? (
+                    {compressing ? (
+                      <div className="space-y-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                        <p className="text-sm text-gray-600">正在压缩图片...</p>
+                      </div>
+                    ) : previewUrl ? (
                       <div className="space-y-4">
                         <img
                           src={previewUrl}
@@ -279,10 +300,10 @@ export default function UploadPage() {
             <div className="flex space-x-4">
               <Button
                 onClick={handleUpload}
-                disabled={!selectedFile || !selectedStyle || uploading || generating}
+                disabled={!selectedFile || !selectedStyle || uploading || generating || compressing}
                 className="flex-1"
               >
-                {uploading ? 'Uploading...' : generating ? 'Generating...' : 'Start Generating'}
+                {compressing ? 'Compressing...' : uploading ? 'Uploading...' : generating ? 'Generating...' : 'Start Generating'}
               </Button>
               <Button
                 variant="outline"

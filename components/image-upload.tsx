@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
+import { smartCompressImage } from '@/lib/utils'
 
 // 格式化文件大小
 const formatFileSize = (bytes: number): string => {
@@ -21,12 +22,14 @@ interface ImageUploadProps {
 
 export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false)
+  const [compressing, setCompressing] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fileSize, setFileSize] = useState<string>('')
+  const [compressionInfo, setCompressionInfo] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       // Check file type
@@ -35,23 +38,41 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
         return
       }
 
-      // Check file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        onUploadError('Image size cannot exceed 5MB')
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        onUploadError('Image size cannot exceed 10MB')
         return
       }
 
-      setSelectedFile(file)
+      setCompressing(true)
       
-      // 设置文件大小
-      setFileSize(formatFileSize(file.size))
-      
-      // Create preview
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setPreview(e.target?.result as string)
+      try {
+        // 智能压缩图片
+        const compressedFile = await smartCompressImage(file)
+        
+        setSelectedFile(compressedFile)
+        
+        // 设置文件大小
+        setFileSize(formatFileSize(compressedFile.size))
+        
+        // 设置压缩信息
+        const originalSize = formatFileSize(file.size)
+        const compressedSize = formatFileSize(compressedFile.size)
+        const compressionRatio = ((file.size - compressedFile.size) / file.size * 100).toFixed(1)
+        setCompressionInfo(`原始: ${originalSize} → 压缩后: ${compressedSize} (减少 ${compressionRatio}%)`)
+        
+        // Create preview
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          setPreview(e.target?.result as string)
+        }
+        reader.readAsDataURL(compressedFile)
+      } catch (error) {
+        console.error('图片压缩失败:', error)
+        onUploadError('图片压缩失败，请重试')
+      } finally {
+        setCompressing(false)
       }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -81,6 +102,7 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
       setSelectedFile(null)
       setPreview(null)
       setFileSize('')
+      setCompressionInfo('')
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -96,6 +118,7 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
     setSelectedFile(null)
     setPreview(null)
     setFileSize('')
+    setCompressionInfo('')
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -112,7 +135,12 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
         disabled={disabled}
       />
       
-      {!preview ? (
+      {compressing ? (
+        <div className="space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-sm text-gray-600 text-center">正在压缩图片...</p>
+        </div>
+      ) : !preview ? (
         <Button
           type="button"
           variant="outline"
@@ -142,20 +170,25 @@ export function ImageUpload({ onUploadSuccess, onUploadError, disabled = false }
             </Button>
           </div>
           
-          {/* 显示文件大小信息 */}
+          {/* 显示文件大小和压缩信息 */}
           {fileSize && (
-            <div className="text-sm text-gray-600 text-center">
-              文件大小: {fileSize}
+            <div className="text-sm text-gray-600 text-center space-y-1">
+              <div>文件大小: {fileSize}</div>
+              {compressionInfo && (
+                <div className="text-xs text-green-600">
+                  {compressionInfo}
+                </div>
+              )}
             </div>
           )}
           
           <div className="flex space-x-2">
             <Button
               onClick={handleUpload}
-              disabled={uploading || disabled}
+              disabled={uploading || disabled || compressing}
               className="flex-1"
             >
-              {uploading ? 'Uploading...' : 'Upload Image'}
+              {compressing ? 'Compressing...' : uploading ? 'Uploading...' : 'Upload Image'}
             </Button>
             <Button
               type="button"
