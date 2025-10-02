@@ -3,6 +3,9 @@ import { getCurrentUser } from '@/lib/auth'
 import { addCredits, getMyCredits } from '@/lib/credits'
 import { selfHostedRewardProvider } from '@/lib/rewards/self-hosted'
 
+// 强制动态渲染，因为使用了 cookies
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser()

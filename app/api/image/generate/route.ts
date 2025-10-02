@@ -6,6 +6,9 @@ import { createServiceClient } from '@/lib/supabase/client'
 import { nanoBananaService } from '@/lib/image-gen/nano-banana'
 import { getSupabaseStorageUrl } from '@/lib/utils'
 
+// 强制动态渲染，因为使用了 cookies
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser()

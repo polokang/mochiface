@@ -5,6 +5,9 @@ import { createServiceClient } from '@/lib/supabase/client'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 
+// 强制动态渲染，因为使用了 cookies
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // 验证用户身份
