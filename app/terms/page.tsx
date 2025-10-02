@@ -12,240 +12,240 @@ export default function TermsPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              服务条款
+              Terms of Service
             </h1>
             <p className="text-gray-600">
-              最后更新日期：2024年12月
+              Last updated: December 2024
             </p>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>1. 服务描述</CardTitle>
+              <CardTitle>1. Service Description</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p>
-                MochiFace 是一个基于人工智能的图片生成平台，为用户提供：
+                MochiFace is an AI-powered image generation platform that provides users with:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>AI 驱动的图片风格化服务</li>
-                <li>多种艺术风格选择</li>
-                <li>用户账户管理和积分系统</li>
-                <li>图片上传、处理和下载功能</li>
+                <li>AI-driven image stylization services</li>
+                <li>Multiple artistic style options</li>
+                <li>User account management and credit system</li>
+                <li>Image upload, processing, and download functionality</li>
               </ul>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>2. 用户账户</CardTitle>
+              <CardTitle>2. User Accounts</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p><strong>2.1 账户注册</strong></p>
+              <p><strong>2.1 Account Registration</strong></p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>您必须提供真实、准确、完整的信息</li>
-                <li>您有责任维护账户信息的准确性</li>
-                <li>一个用户只能注册一个账户</li>
-                <li>您必须年满13岁才能使用我们的服务</li>
+                <li>You must provide true, accurate, and complete information</li>
+                <li>You are responsible for maintaining the accuracy of account information</li>
+                <li>One user can only register one account</li>
+                <li>You must be at least 13 years old to use our service</li>
               </ul>
               
-              <p><strong>2.2 账户安全</strong></p>
+              <p><strong>2.2 Account Security</strong></p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>您有责任保护账户密码和登录信息</li>
-                <li>您对账户下发生的所有活动负责</li>
-                <li>发现未授权使用应立即通知我们</li>
+                <li>You are responsible for protecting account passwords and login information</li>
+                <li>You are responsible for all activities under your account</li>
+                <li>Unauthorized use should be reported to us immediately</li>
               </ul>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>3. 使用规则</CardTitle>
+              <CardTitle>3. Usage Rules</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p><strong>3.1 允许的使用</strong></p>
+              <p><strong>3.1 Permitted Use</strong></p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>个人非商业用途的图片生成</li>
-                <li>遵守所有适用的法律法规</li>
-                <li>尊重他人的知识产权</li>
+                <li>Personal, non-commercial image generation</li>
+                <li>Compliance with all applicable laws and regulations</li>
+                <li>Respect for others' intellectual property rights</li>
               </ul>
               
-              <p><strong>3.2 禁止的使用</strong></p>
+              <p><strong>3.2 Prohibited Use</strong></p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>上传违法、有害、威胁、诽谤、骚扰的内容</li>
-                <li>上传侵犯他人知识产权的材料</li>
-                <li>尝试破解、逆向工程或干扰服务</li>
-                <li>使用自动化工具或机器人</li>
-                <li>生成非法、有害或不当内容</li>
-                <li>商业用途未经授权使用</li>
+                <li>Uploading illegal, harmful, threatening, defamatory, or harassing content</li>
+                <li>Uploading materials that infringe on others' intellectual property</li>
+                <li>Attempting to hack, reverse engineer, or interfere with the service</li>
+                <li>Using automated tools or bots</li>
+                <li>Generating illegal, harmful, or inappropriate content</li>
+                <li>Unauthorized commercial use</li>
               </ul>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>4. 积分系统</CardTitle>
+              <CardTitle>4. Credit System</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p><strong>4.1 积分获取</strong></p>
+              <p><strong>4.1 Credit Acquisition</strong></p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>新用户注册获得3个免费积分</li>
-                <li>完成奖励任务可获得额外积分</li>
-                <li>积分不可转让或出售</li>
+                <li>New users receive 3 free credits upon registration</li>
+                <li>Complete reward tasks to earn additional credits</li>
+                <li>Credits are non-transferable and non-sellable</li>
               </ul>
               
-              <p><strong>4.2 积分使用</strong></p>
+              <p><strong>4.2 Credit Usage</strong></p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>每次图片生成消耗1个积分</li>
-                <li>积分不足时无法使用生成服务</li>
-                <li>积分不可退款</li>
+                <li>Each image generation consumes 1 credit</li>
+                <li>Generation service unavailable when credits are insufficient</li>
+                <li>Credits are non-refundable</li>
               </ul>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>5. 知识产权</CardTitle>
+              <CardTitle>5. Intellectual Property</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p><strong>5.1 用户内容</strong></p>
+              <p><strong>5.1 User Content</strong></p>
               <p>
-                您保留对上传图片的所有权利。通过上传内容，您授予我们必要的许可来提供服务和生成新内容。
+                You retain all rights to uploaded images. By uploading content, you grant us necessary licenses to provide services and generate new content.
               </p>
               
-              <p><strong>5.2 生成内容</strong></p>
+              <p><strong>5.2 Generated Content</strong></p>
               <p>
-                使用我们的AI服务生成的内容，您拥有使用权，但需遵守以下限制：
+                For content generated using our AI service, you have usage rights, subject to the following restrictions:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>仅限个人非商业用途</li>
-                <li>不得用于违法或有害目的</li>
-                <li>不得声称是原创作品</li>
+                <li>Personal, non-commercial use only</li>
+                <li>Not for illegal or harmful purposes</li>
+                <li>Cannot claim as original work</li>
               </ul>
               
-              <p><strong>5.3 平台权利</strong></p>
+              <p><strong>5.3 Platform Rights</strong></p>
               <p>
-                我们的服务、软件、商标和所有相关内容受知识产权法保护。
+                Our service, software, trademarks, and all related content are protected by intellectual property laws.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>6. 服务可用性</CardTitle>
+              <CardTitle>6. Service Availability</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p>
-                我们努力保持服务的高可用性，但不保证：
+                We strive to maintain high service availability but do not guarantee:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>服务不会中断或出错</li>
-                <li>所有功能始终可用</li>
-                <li>生成结果满足特定要求</li>
+                <li>Service will not be interrupted or error-free</li>
+                <li>All features will always be available</li>
+                <li>Generated results will meet specific requirements</li>
               </ul>
               <p>
-                我们保留随时修改、暂停或终止服务的权利。
+                We reserve the right to modify, suspend, or terminate the service at any time.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>7. 免责声明</CardTitle>
+              <CardTitle>7. Disclaimer</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p>
-                在法律允许的最大范围内，我们的服务按"现状"提供，不提供任何明示或暗示的保证，包括但不限于：
+                To the maximum extent permitted by law, our service is provided "as is" without any express or implied warranties, including but not limited to:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>服务的准确性、可靠性或完整性</li>
-                <li>生成内容的质量或适用性</li>
-                <li>服务不会中断或无错误</li>
-                <li>病毒或其他有害组件的缺失</li>
+                <li>Accuracy, reliability, or completeness of the service</li>
+                <li>Quality or suitability of generated content</li>
+                <li>Service will be uninterrupted or error-free</li>
+                <li>Absence of viruses or other harmful components</li>
               </ul>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>8. 责任限制</CardTitle>
+              <CardTitle>8. Limitation of Liability</CardTitle>
             </CardHeader>
             <CardContent>
               <p>
-                在任何情况下，我们都不对以下情况承担责任：
+                In no event shall we be liable for:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>间接、偶然、特殊或后果性损害</li>
-                <li>利润损失、数据丢失或业务中断</li>
-                <li>用户生成或使用的内容造成的损害</li>
-                <li>第三方服务的问题</li>
+                <li>Indirect, incidental, special, or consequential damages</li>
+                <li>Loss of profits, data loss, or business interruption</li>
+                <li>Damages caused by user-generated or used content</li>
+                <li>Issues with third-party services</li>
               </ul>
               <p className="mt-4">
-                我们的总责任不超过您在过去12个月内支付给我们的费用。
+                Our total liability shall not exceed the amount you paid to us in the past 12 months.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>9. 账户终止</CardTitle>
+              <CardTitle>9. Account Termination</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p><strong>9.1 用户终止</strong></p>
-              <p>您可以随时停止使用我们的服务并删除账户。</p>
+              <p><strong>9.1 User Termination</strong></p>
+              <p>You may stop using our service and delete your account at any time.</p>
               
-              <p><strong>9.2 我们终止</strong></p>
-              <p>我们可以在以下情况下暂停或终止您的账户：</p>
+              <p><strong>9.2 Our Termination</strong></p>
+              <p>We may suspend or terminate your account in the following circumstances:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>违反本服务条款</li>
-                <li>长期不活跃</li>
-                <li>法律要求</li>
-                <li>其他合理原因</li>
+                <li>Violation of these Terms of Service</li>
+                <li>Long-term inactivity</li>
+                <li>Legal requirements</li>
+                <li>Other reasonable reasons</li>
               </ul>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>10. 争议解决</CardTitle>
+              <CardTitle>10. Dispute Resolution</CardTitle>
             </CardHeader>
             <CardContent>
               <p>
-                因本服务条款产生的争议应通过友好协商解决。如协商不成，
-                应提交至我们所在地有管辖权的人民法院解决。
+                Disputes arising from these Terms of Service shall be resolved through friendly negotiation. 
+                If negotiation fails, disputes shall be submitted to the competent court in our jurisdiction.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>11. 条款修改</CardTitle>
+              <CardTitle>11. Terms Modification</CardTitle>
             </CardHeader>
             <CardContent>
               <p>
-                我们保留随时修改本服务条款的权利。重大修改将通过网站通知或邮件告知。
-                继续使用服务即表示您接受修改后的条款。
+                We reserve the right to modify these Terms of Service at any time. Significant changes will be communicated through website notifications or email.
+                Continued use of the service indicates your acceptance of the modified terms.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>12. 联系我们</CardTitle>
+              <CardTitle>12. Contact Us</CardTitle>
             </CardHeader>
             <CardContent>
               <p>
-                如果您对本服务条款有任何疑问，请通过以下方式联系我们：
+                If you have any questions about these Terms of Service, please contact us through:
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p><strong>邮箱</strong>：legal@mochiface.com</p>
-                <p><strong>网站</strong>：www.mochiface.com</p>
+                <p><strong>Email</strong>: legal@mochiface.com</p>
+                <p><strong>Website</strong>: www.mochiface.com</p>
               </div>
             </CardContent>
           </Card>
 
           <div className="mt-8 text-center text-sm text-gray-500">
-            <p>本服务条款自2024年12月起生效</p>
+            <p>These Terms of Service are effective as of December 2024</p>
           </div>
         </div>
       </main>
