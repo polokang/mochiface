@@ -14,6 +14,8 @@ interface ImageStyle {
   id: string
   name: string
   description: string
+  prompt: string
+  thumbnail: string
 }
 
 export default function UploadPage() {
@@ -43,7 +45,7 @@ export default function UploadPage() {
     }
   }
 
-  // 加载风格列表
+  // Load styles list
   useEffect(() => {
     fetchStyles()
   }, [])
@@ -52,13 +54,13 @@ export default function UploadPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // 验证文件类型
+    // Validate file type
     if (!isValidImageType(file)) {
       setError('Only JPG, PNG, WebP format images are supported')
       return
     }
 
-    // 验证文件大小
+    // Validate file size
     if (!isValidImageSize(file, 10)) {
       setError('Image size cannot exceed 10MB')
       return
@@ -68,24 +70,24 @@ export default function UploadPage() {
     setCompressing(true)
     
     try {
-      // 智能压缩图片
+      // Smart compress image
       const compressedFile = await smartCompressImage(file)
       
       setSelectedFile(compressedFile)
       
-      // 创建预览
+      // Create preview
       const url = URL.createObjectURL(compressedFile)
       setPreviewUrl(url)
       
-      // 显示压缩前后的文件大小对比
+      // Show file size comparison before and after compression
       const originalSizeMB = formatFileSizeMB(file.size)
       const compressedSizeMB = formatFileSizeMB(compressedFile.size)
       const compressionRatio = ((file.size - compressedFile.size) / file.size * 100).toFixed(1)
       
-      setSuccess(`图片已选择并压缩 (原始: ${originalSizeMB} → 压缩后: ${compressedSizeMB}, 减少 ${compressionRatio}%)`)
+      setSuccess(`Image selected and compressed (Original: ${originalSizeMB} → Compressed: ${compressedSizeMB}, reduced ${compressionRatio}%)`)
     } catch (error) {
-      console.error('图片压缩失败:', error)
-      setError('图片压缩失败，请重试')
+      console.error('Image compression failed:', error)
+      setError('Image compression failed, please try again')
     } finally {
       setCompressing(false)
     }
@@ -112,7 +114,7 @@ export default function UploadPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess('图片上传成功！正在生成中...')
+        setSuccess('Image uploaded successfully! Generating...')
         // Automatically start generation
         handleGenerate(data.url)
       } else {
@@ -193,7 +195,7 @@ export default function UploadPage() {
           </div>
 
           <div className="space-y-6">
-            {/* 上传区域 */}
+            {/* Upload Area */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -213,7 +215,7 @@ export default function UploadPage() {
                     {compressing ? (
                       <div className="space-y-4">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                        <p className="text-sm text-gray-600">正在压缩图片...</p>
+                        <p className="text-sm text-gray-600">Compressing image...</p>
                       </div>
                     ) : previewUrl ? (
                       <div className="space-y-4">
@@ -249,7 +251,7 @@ export default function UploadPage() {
               </CardContent>
             </Card>
 
-            {/* 风格选择 */}
+            {/* Style Selection */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -268,10 +270,25 @@ export default function UploadPage() {
                   <SelectContent>
                     {styles.map((style) => (
                       <SelectItem key={style.id} value={style.id}>
-                        <div>
-                          <div className="font-medium">{style.name}</div>
-                          <div className="text-sm text-gray-500">
-                            {style.description}
+                        <div className="flex items-center space-x-3">
+                          <img 
+                            src={style.thumbnail} 
+                            alt={style.name}
+                            className="w-12 h-12 object-cover rounded-lg border"
+                            onError={(e) => {
+                              // If thumbnail fails to load, show default icon
+                              e.currentTarget.style.display = 'none'
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                            }}
+                          />
+                          <div className="hidden w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <ImageIcon className="w-6 h-6 text-gray-400" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium">{style.name}</div>
+                            <div className="text-sm text-gray-500">
+                              {style.description}
+                            </div>
                           </div>
                         </div>
                       </SelectItem>
@@ -281,7 +298,7 @@ export default function UploadPage() {
               </CardContent>
             </Card>
 
-            {/* 错误和成功提示 */}
+            {/* Error and Success Messages */}
             {error && (
               <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-4 rounded-lg">
                 <AlertCircle className="h-5 w-5" />
@@ -296,7 +313,7 @@ export default function UploadPage() {
               </div>
             )}
 
-            {/* 操作按钮 */}
+            {/* Action Buttons */}
             <div className="flex space-x-4">
               <Button
                 onClick={handleUpload}

@@ -9,7 +9,6 @@ export class NanoBananaService implements ImageGenService {
     if (apiKey && apiKey.length > 10) { // Basic validation
       try {
         this.genAI = new GoogleGenerativeAI(apiKey)
-        console.log('✅ Google Gemini API initialized successfully')
       } catch (error) {
         console.warn('⚠️ Google Gemini API initialization failed:', error)
         this.genAI = null
@@ -46,12 +45,13 @@ export class NanoBananaService implements ImageGenService {
         0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
       ])
       
-      console.log('Using mock image response (Google Gemini API not configured)')
       return { resultImageBuffer: mockImageBuffer }
     }
     
     try {
-      console.log('🎨 Generating image using Google Gemini...')
+      // 记录 Google API 调用开始时间
+      const apiStartTime = Date.now()
+      console.log(`🚀 [${input.userId}] 开始调用 Google API 生成图片，样式: ${input.style}`)
       
       // Download source image from Supabase Storage URL
       const sourceImageBuffer = await this.downloadImage(input.sourceImageUrl)
@@ -87,20 +87,14 @@ export class NanoBananaService implements ImageGenService {
       ])
       
       const response = await result.response
-      console.log('🔍 Gemini response structure:', JSON.stringify(response, null, 2))
       
       // Check for text response
       const textParts = response.candidates?.[0]?.content?.parts?.filter(part => part.text)
-      if (textParts && textParts.length > 0) {
-        console.log('📝 Gemini text response:', textParts.map(p => p.text).join('\n'))
-      }
       
       // Check for image response
       const imagePart = response.candidates?.[0]?.content?.parts?.find(part => part.inlineData)
       
       if (!imagePart?.inlineData) {
-        console.log('⚠️ Gemini did not generate an image, trying plain text generation...')
-        
         // Try plain text generation
         const textOnlyModel = this.genAI!.getGenerativeModel({ 
           model: "gemini-1.5-pro",
@@ -122,7 +116,6 @@ export class NanoBananaService implements ImageGenService {
         const textOnlyImagePart = textOnlyResponse.candidates?.[0]?.content?.parts?.find(part => part.inlineData)
         
         if (!textOnlyImagePart?.inlineData) {
-          console.log('⚠️ Plain text generation also failed, returning mock image')
           // Return mock image
           const mockImageBuffer = Buffer.from([
             0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
@@ -137,17 +130,20 @@ export class NanoBananaService implements ImageGenService {
         }
         
         const resultBuffer = Buffer.from(textOnlyImagePart.inlineData.data, 'base64')
-        console.log('✅ Google Gemini plain text image generation successful')
+        const apiEndTime = Date.now()
+        const apiDuration = apiEndTime - apiStartTime
+        console.log(`✅ [${input.userId}] Google API 图片生成完成，耗时: ${apiDuration}ms`)
         return { resultImageBuffer: resultBuffer }
       }
       
       const resultBuffer = Buffer.from(imagePart.inlineData.data, 'base64')
-      console.log('✅ Google Gemini image generation successful')
+      const apiEndTime = Date.now()
+      const apiDuration = apiEndTime - apiStartTime
+      console.log(`✅ [${input.userId}] Google API 图片生成完成，耗时: ${apiDuration}ms`)
       return { resultImageBuffer: resultBuffer }
       
     } catch (error) {
-      console.error('Google Gemini generation failed:', error)
-      console.log('🔄 Falling back to mock image response')
+      console.error(`❌ [${input.userId}] Google API 生成失败:`, error)
       
       // Fall back to mock image
       const mockImageBuffer = Buffer.from([
@@ -191,20 +187,14 @@ export class NanoBananaService implements ImageGenService {
   }
 
   private buildPrompt(style: string): string {
-    const stylePrompts: { [key: string]: string } = {
-      'anime': 'Transform this image into anime style with vibrant colors, large expressive eyes, and clean line art',
-      'cartoon': 'Convert this image to cartoon style with bold outlines, simplified shapes, and bright colors',
-      'realistic': 'Make this image more photorealistic with enhanced details, natural lighting, and realistic textures',
-      'oil_painting': 'Transform this image into an oil painting style with visible brushstrokes, rich colors, and artistic texture',
-      'watercolor': 'Convert this image to watercolor style with soft edges, translucent colors, and flowing paint effects',
-      'sketch': 'Transform this image into a pencil sketch with detailed line work, shading, and artistic cross-hatching',
-      'cyberpunk': 'Convert this image to cyberpunk style with neon colors, futuristic elements, and high-tech aesthetics',
-      'vintage': 'Transform this image into vintage style with retro colors, film grain, and nostalgic atmosphere',
-      'fantasy': 'Convert this image to fantasy style with magical elements, ethereal lighting, and mystical atmosphere',
-      'minimalist': 'Transform this image into minimalist style with clean lines, simple shapes, and reduced details'
-    }
-
-    const basePrompt = stylePrompts[style] || `Transform this image with ${style} style`
+    // Import IMAGE_STYLES to get the configured prompt
+    const { IMAGE_STYLES } = require('./index')
+    
+    // Find the style configuration
+    const styleConfig = IMAGE_STYLES.find((s: any) => s.id === style)
+    
+    // Use configured prompt or fallback
+    const basePrompt = styleConfig?.prompt || `Transform this image with ${style} style`
     
     return `${basePrompt}. Maintain the original composition and subject while applying the new artistic style. The result should be a high-quality, professional-looking image that preserves the essence of the original while showcasing the requested style transformation.`
   }

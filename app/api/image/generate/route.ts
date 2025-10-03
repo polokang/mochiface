@@ -108,6 +108,10 @@ async function processImageGeneration(
       userId
     })
 
+    // 记录数据库操作开始时间
+    const dbStartTime = Date.now()
+    console.log(`💾 [${userId}] 开始数据库操作，生成ID: ${generationId}`)
+
     // 上传结果图片到 Supabase Storage
     const fileName = `result_${generationId}_${Date.now()}.jpg`
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -131,8 +135,12 @@ async function processImageGeneration(
       })
       .eq('id', generationId)
 
+    const dbEndTime = Date.now()
+    const dbDuration = dbEndTime - dbStartTime
+    console.log(`✅ [${userId}] 数据库操作完成，耗时: ${dbDuration}ms`)
+
   } catch (error) {
-    console.error('Image generation processing error:', error)
+    console.error(`❌ [${userId}] 图片生成处理错误:`, error)
     
     // 更新生成记录为失败
     await supabase

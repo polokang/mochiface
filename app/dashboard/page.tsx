@@ -6,9 +6,7 @@ import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Navbar } from '@/components/navbar'
-import { ImageUpload } from '@/components/image-upload'
-import { ImageIcon, Download, RefreshCw, AlertCircle, CheckCircle, Clock, Upload, X, Trash2 } from 'lucide-react'
-import { formatFileSizeMB } from '@/lib/utils'
+import { ImageIcon, Download, RefreshCw, AlertCircle, CheckCircle, Clock, X, Trash2, Gift } from 'lucide-react'
 import Link from 'next/link'
 
 interface GeneratedImage {
@@ -26,11 +24,7 @@ export default function DashboardPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [images, setImages] = useState<GeneratedImage[]>([])
-  const [credits, setCredits] = useState<number | null>(null)
   const [loadingImages, setLoadingImages] = useState(true)
-  const [showUploadModal, setShowUploadModal] = useState(false)
-  const [uploadError, setUploadError] = useState('')
-  const [uploadSuccess, setUploadSuccess] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [imageToDelete, setImageToDelete] = useState<GeneratedImage | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -39,7 +33,6 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       fetchImages()
-      fetchCredits()
     }
   }, [user])
 
@@ -57,17 +50,6 @@ export default function DashboardPage() {
     }
   }
 
-  const fetchCredits = async () => {
-    try {
-      const response = await fetch('/api/credits/me')
-      if (response.ok) {
-        const data = await response.json()
-        setCredits(data.points)
-      }
-    } catch (error) {
-      console.error('Failed to fetch credits:', error)
-    }
-  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -106,22 +88,6 @@ export default function DashboardPage() {
     document.body.removeChild(link)
   }
 
-  const handleUploadSuccess = (imageUrl: string, fileSize?: number) => {
-    const fileSizeText = fileSize ? ` (${formatFileSizeMB(fileSize)})` : ''
-    setUploadSuccess(`Image uploaded successfully!${fileSizeText}`)
-    setUploadError('')
-    setShowUploadModal(false)
-    
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      setUploadSuccess('')
-    }, 3000)
-  }
-
-  const handleUploadError = (error: string) => {
-    setUploadError(error)
-    setUploadSuccess('')
-  }
 
   const handleDeleteClick = (image: GeneratedImage) => {
     setImageToDelete(image)
@@ -218,47 +184,15 @@ export default function DashboardPage() {
                   <span className="sm:hidden">Generate</span>
                 </Button>
               </Link>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowUploadModal(true)}
-                  className="flex-1 sm:flex-none"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Upload Image</span>
-                  <span className="sm:hidden">Upload</span>
+              <Link href="/rewards">
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Gift className="mr-2 h-4 w-4" />
+                  Get More Credits
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={fetchImages}
-                  className="flex-1 sm:flex-none"
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Refresh</span>
-                  <span className="sm:hidden">Refresh</span>
-                </Button>
-              </div>
+              </Link>
             </div>
           </div>
 
-          {/* 积分显示 */}
-          {credits !== null && (
-            <Card className="mb-8">
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                  <div>
-                    <h3 className="text-lg font-semibold">Current Credits</h3>
-                    <p className="text-2xl sm:text-3xl font-bold text-blue-600">{credits}</p>
-                  </div>
-                  <Link href="/rewards">
-                    <Button variant="outline" className="w-full sm:w-auto">
-                      Get More Credits
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* 作品列表 */}
           {loadingImages ? (
@@ -363,38 +297,6 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* 上传模态框 */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Upload Image</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowUploadModal(false)
-                  setUploadError('')
-                  setUploadSuccess('')
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <ImageUpload
-              onUploadSuccess={handleUploadSuccess}
-              onUploadError={handleUploadError}
-            />
-            
-            {uploadError && (
-              <div className="mt-4 text-red-500 text-sm text-center">
-                {uploadError}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* 删除确认对话框 */}
       {showDeleteModal && imageToDelete && (
@@ -445,12 +347,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 成功消息 */}
-      {uploadSuccess && (
-        <div className="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
-          {uploadSuccess}
-        </div>
-      )}
     </div>
   )
 }
