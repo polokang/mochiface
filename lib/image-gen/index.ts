@@ -65,7 +65,7 @@ export const IMAGE_STYLES: ImageStyle[] = [
   - Deliver a clean, studio-style headshot suitable for LinkedIn/Resume/Company profile
   - Solid/soft-gradient neutral background; crisp edges; PNG, sRGB
   - Aim for a 4:5 crop (suggest 1200×1500 px) with ~7–10% headroom above the head`,
-    thumbnail: '/images/pro-headshot.png'
+    thumbnail: '/pro-headshot.png'
   },
 
   // 证件照风格
@@ -101,7 +101,7 @@ export const IMAGE_STYLES: ImageStyle[] = [
   
   [Output]
   - Deliver only the final 600×600 image, perfectly centered and cropped, solid white background`,
-    thumbnail: '/images/idphoto-us-600.png'
+    thumbnail: '/idphoto-us-600.png'
   },
 
   // 卡通风格
@@ -138,7 +138,7 @@ export const IMAGE_STYLES: ImageStyle[] = [
   [Output]
   - Deliver a rectangular PNG (suggest 1440×1920 or 1080×1350), sRGB.
   - Clean background, no watermark or text; subject centered with comfortable padding.`,
-    thumbnail: '/images/kawaii-manga-from-photo.png'
+    thumbnail: '/kawaii-manga-from-photo.png'
   },
 
   // 蒸汽朋克风格
@@ -181,7 +181,7 @@ export const IMAGE_STYLES: ImageStyle[] = [
   [Output]
   - Deliver a rectangular PNG (suggest 1440×1920 or 1080×1350), sRGB.
   - No text, watermark, frames, or borders.`,
-    thumbnail: '/images/cyberpunk-portrait.png'
+    thumbnail: '/cyberpunk-portrait.png'
   },
 
   // 护照风格
@@ -194,7 +194,7 @@ export const IMAGE_STYLES: ImageStyle[] = [
   2、职业正装
   3、正脸
   4、微笑`,
-    thumbnail: '/images/passport.png'
+    thumbnail: '/passport.png'
   },
 ];
 
@@ -213,8 +213,8 @@ export function getImageStyle(styleId: string): ImageStyle | undefined {
  * @returns 处理后的缩略图 URL
  */
 export function getThumbnailUrl(thumbnailPath: string): string {
-  // 如果是生产环境且路径以 /images/ 开头，确保正确的前缀
-  if (process.env.NODE_ENV === 'production' && thumbnailPath.startsWith('/images/')) {
+  // 如果是生产环境且路径以 / 开头，确保正确的前缀
+  if (process.env.NODE_ENV === 'production' && thumbnailPath.startsWith('/')) {
     return thumbnailPath;
   }
   return thumbnailPath;
