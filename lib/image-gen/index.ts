@@ -208,6 +208,19 @@ export function getImageStyle(styleId: string): ImageStyle | undefined {
 }
 
 /**
+ * 获取缩略图 URL，处理生产环境的路径问题
+ * @param thumbnailPath 缩略图路径
+ * @returns 处理后的缩略图 URL
+ */
+export function getThumbnailUrl(thumbnailPath: string): string {
+  // 如果是生产环境且路径以 /images/ 开头，确保正确的前缀
+  if (process.env.NODE_ENV === 'production' && thumbnailPath.startsWith('/images/')) {
+    return thumbnailPath;
+  }
+  return thumbnailPath;
+}
+
+/**
  * 获取所有可用的样式 ID 列表
  * @returns 样式 ID 数组
  */

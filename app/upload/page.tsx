@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Navbar } from '@/components/navbar'
 import { Upload, Image as ImageIcon, Sparkles, AlertCircle } from 'lucide-react'
+import Image from 'next/image'
 import { isValidImageType, isValidImageSize, formatFileSizeMB, smartCompressImage } from '@/lib/utils'
+import { getThumbnailUrl } from '@/lib/image-gen'
 
 interface ImageStyle {
   id: string
@@ -271,18 +273,22 @@ export default function UploadPage() {
                     {styles.map((style) => (
                       <SelectItem key={style.id} value={style.id}>
                         <div className="flex items-center space-x-3">
-                          <img 
-                            src={style.thumbnail} 
-                            alt={style.name}
-                            className="w-12 h-12 object-cover rounded-lg border"
-                            onError={(e) => {
-                              // If thumbnail fails to load, show default icon
-                              e.currentTarget.style.display = 'none'
-                              e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                            }}
-                          />
-                          <div className="hidden w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <ImageIcon className="w-6 h-6 text-gray-400" />
+                          <div className="w-12 h-12 relative">
+                            <Image
+                              src={getThumbnailUrl(style.thumbnail)}
+                              alt={style.name}
+                              width={48}
+                              height={48}
+                              className="object-cover rounded-lg border"
+                              onError={(e) => {
+                                // If thumbnail fails to load, show default icon
+                                e.currentTarget.style.display = 'none'
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                              }}
+                            />
+                            <div className="hidden w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center absolute inset-0">
+                              <ImageIcon className="w-6 h-6 text-gray-400" />
+                            </div>
                           </div>
                           <div className="flex-1">
                             <div className="font-medium">{style.name}</div>
