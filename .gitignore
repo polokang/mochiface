@@ -53,9 +53,5 @@ Thumbs.db
 tmp/
 temp/
 
-# 上传的图片
-public/images/
-!public/images/.gitkeep
-
 # Docker
 .dockerignore
