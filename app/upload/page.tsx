@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Navbar } from '@/components/navbar'
 import { Upload, Image as ImageIcon, Sparkles, AlertCircle } from 'lucide-react'
-import Image from 'next/image'
 import { isValidImageType, isValidImageSize, formatFileSizeMB, smartCompressImage } from '@/lib/utils'
 import { getThumbnailUrl } from '@/lib/image-gen'
 
@@ -274,7 +273,7 @@ export default function UploadPage() {
                       <SelectItem key={style.id} value={style.id}>
                         <div className="flex items-center space-x-3">
                           <div className="w-12 h-12 relative">
-                            <Image
+                            <img
                               src={getThumbnailUrl(style.thumbnail)}
                               alt={style.name}
                               width={48}
