@@ -53,17 +53,21 @@ const nextConfig = {
       "use": "@vercel/next"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/images/(.*)",
-      "dest": "/images/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
+      "source": "/images/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     }
   ]
 }
 ```
+
+**注意**: 移除了 `routes` 配置以避免与 `headers` 冲突。
 
 ### 4. 添加缩略图 URL 处理函数
 
@@ -132,8 +136,9 @@ npm run check-assets
 ### 常见问题
 
 1. **路径问题**
-   - 确保图片路径以 `/images/` 开头
+   - 确保图片路径以 `/images/` 开头（如 `/images/passport.png`）
    - 不要使用相对路径
+   - 图片文件应放在 `public/images/` 目录下
 
 2. **缓存问题**
    - Vercel 可能有 CDN 缓存

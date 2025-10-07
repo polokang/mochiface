@@ -26,29 +26,56 @@ let failCount = 0;
 
 async function checkImage(imageFile) {
   return new Promise((resolve) => {
-    const url = `${BASE_URL}/images/${imageFile}`;
-    const request = https.get(url, (response) => {
-      if (response.statusCode === 200) {
-        console.log(`✅ ${imageFile} - OK`);
-        successCount++;
-      } else {
-        console.log(`❌ ${imageFile} - ${response.statusCode} ${response.statusMessage}`);
-        failCount++;
-      }
-      resolve();
-    });
+    // 检查两种路径格式，优先检查 /images/ 路径
+    const urls = [
+      `${BASE_URL}/images/${imageFile}`,
+      `${BASE_URL}/${imageFile}`
+    ];
+    
+    let checked = 0;
+    let found = false;
+    
+    urls.forEach(url => {
+      const request = https.get(url, (response) => {
+        checked++;
+        if (response.statusCode === 200 && !found) {
+          console.log(`✅ ${imageFile} - OK (${url})`);
+          successCount++;
+          found = true;
+        } else if (checked === urls.length && !found) {
+          console.log(`❌ ${imageFile} - Not found in any path`);
+          failCount++;
+        }
+        
+        if (checked === urls.length) {
+          resolve();
+        }
+      });
 
-    request.on('error', (error) => {
-      console.log(`❌ ${imageFile} - Error: ${error.message}`);
-      failCount++;
-      resolve();
-    });
+      request.on('error', (error) => {
+        checked++;
+        if (checked === urls.length && !found) {
+          console.log(`❌ ${imageFile} - Error: ${error.message}`);
+          failCount++;
+        }
+        
+        if (checked === urls.length) {
+          resolve();
+        }
+      });
 
-    request.setTimeout(5000, () => {
-      console.log(`❌ ${imageFile} - Timeout`);
-      failCount++;
-      request.destroy();
-      resolve();
+      request.setTimeout(5000, () => {
+        checked++;
+        if (checked === urls.length && !found) {
+          console.log(`❌ ${imageFile} - Timeout`);
+          failCount++;
+        }
+        
+        if (checked === urls.length) {
+          resolve();
+        }
+        request.destroy();
+      });
     });
   });
 }
