@@ -44,17 +44,17 @@ async function setupStorage() {
 
     console.log('📋 现有存储桶:', buckets.map(b => b.name))
 
-    const mochifaceBucket = buckets.find(bucket => bucket.name === 'mochiface')
+    const mochifaceBucket = buckets.find(bucket => bucket.name === 'mochiface-bucket')
     
     if (mochifaceBucket) {
-      console.log('✅ mochiface 存储桶已存在')
+      console.log('✅ mochiface-bucket 存储桶已存在')
       console.log('   公开访问:', mochifaceBucket.public)
       console.log('   创建时间:', mochifaceBucket.created_at)
     } else {
-      console.log('🔧 创建 mochiface 存储桶...')
+      console.log('🔧 创建 mochiface-bucket 存储桶...')
       
       // 创建存储桶
-      const { data, error } = await supabase.storage.createBucket('mochiface', {
+      const { data, error } = await supabase.storage.createBucket('mochiface-bucket', {
         public: true,
         allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
         fileSizeLimit: 5242880 // 5MB
@@ -66,7 +66,7 @@ async function setupStorage() {
         return
       }
 
-      console.log('✅ mochiface 存储桶创建成功')
+      console.log('✅ mochiface-bucket 存储桶创建成功')
     }
 
     // 测试上传功能
@@ -75,7 +75,7 @@ async function setupStorage() {
     const testPath = 'test/test.txt'
     
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('mochiface')
+      .from('mochiface-bucket')
       .upload(testPath, testContent)
 
     if (uploadError) {
@@ -85,7 +85,7 @@ async function setupStorage() {
       
       // 清理测试文件
       await supabase.storage
-        .from('mochiface')
+        .from('mochiface-bucket')
         .remove([testPath])
       console.log('🧹 测试文件已清理')
     }

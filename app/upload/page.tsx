@@ -175,8 +175,14 @@ export default function UploadPage() {
     )
   }
 
+  // 使用useEffect来处理路由跳转，避免在渲染过程中调用setState
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
+
   if (!user) {
-    router.push('/login')
     return null
   }
 

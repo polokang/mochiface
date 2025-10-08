@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
-      .from('mochiface')
+      .from('mochiface-bucket')
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
-      .from('mochiface')
+      .from('mochiface-bucket')
       .getPublicUrl(filePath)
 
     return NextResponse.json({

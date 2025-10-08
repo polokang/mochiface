@@ -112,11 +112,12 @@ async function processImageGeneration(
     const dbStartTime = Date.now()
     console.log(`💾 [${userId}] 开始数据库操作，生成ID: ${generationId}`)
 
-    // 上传结果图片到 Supabase Storage
+    // 上传结果图片到 Supabase Storage (存储在 mochiface-bucket/results/ 路径下)
     const fileName = `result_${generationId}_${Date.now()}.jpg`
+    const filePath = `results/${fileName}`
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('results')
-      .upload(fileName, result.resultImageBuffer, {
+      .from('mochiface-bucket')
+      .upload(filePath, result.resultImageBuffer, {
         contentType: 'image/jpeg'
       })
 
@@ -124,7 +125,7 @@ async function processImageGeneration(
       throw new Error(`Upload failed: ${uploadError.message}`)
     }
 
-    const resultImageUrl = getSupabaseStorageUrl('results', uploadData.path)
+    const resultImageUrl = getSupabaseStorageUrl('mochiface-bucket', uploadData.path)
 
     // 更新生成记录为成功
     await supabase
