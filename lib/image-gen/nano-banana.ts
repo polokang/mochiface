@@ -103,6 +103,7 @@ export class NanoBananaService implements ImageGenService {
       const prompt = this.buildPrompt(input.style)
       
       // Use Gemini to generate image - 修复模型名称
+      console.log(`🤖 [${input.userId}] 开始初始化Gemini模型: gemini-2.5-flash-image`)
       const model = this.genAI!.getGenerativeModel({ 
         model: "gemini-2.5-flash-image", // 使用可用的pro模型
         generationConfig: {
@@ -112,11 +113,18 @@ export class NanoBananaService implements ImageGenService {
           maxOutputTokens: 1024,
         }
       })
+      console.log(`✅ [${input.userId}] Gemini模型初始化完成`)
       
       // 优化API调用，添加超时和重试机制
       const apiCallStartTime = Date.now()
+      console.log(`🚀 [${input.userId}] 开始调用Google API生成图片...`)
+      console.log(`📝 [${input.userId}] 使用的提示词: ${prompt.substring(0, 100)}...`)
+      console.log(`🖼️ [${input.userId}] 图片数据大小: ${base64Image.length} 字符`)
+      console.log(`📄 [${input.userId}] 图片MIME类型: ${mimeType}`)
+      
       const result = await this.callWithRetry(async () => {
-        return await model.generateContent([
+        console.log(`🔄 [${input.userId}] 执行generateContent调用...`)
+        const response = await model.generateContent([
           {
             text: prompt
           },
@@ -127,19 +135,26 @@ export class NanoBananaService implements ImageGenService {
             }
           }
         ])
+        console.log(`✅ [${input.userId}] generateContent调用成功`)
+        return response
       })
       const apiCallEndTime = Date.now()
       console.log(`🤖 [${input.userId}] Google API调用完成，耗时: ${apiCallEndTime - apiCallStartTime}ms`)
       
       const response = await result.response
+      console.log(`📊 [${input.userId}] 收到Google API响应`)
+      console.log(`📋 [${input.userId}] 响应候选数量: ${response.candidates?.length || 0}`)
       
       // Check for text response
       const textParts = response.candidates?.[0]?.content?.parts?.filter(part => part.text)
+      console.log(`📝 [${input.userId}] 文本响应部分数量: ${textParts?.length || 0}`)
       
       // Check for image response
       const imagePart = response.candidates?.[0]?.content?.parts?.find(part => part.inlineData)
+      console.log(`🖼️ [${input.userId}] 图片响应部分: ${imagePart ? '存在' : '不存在'}`)
       
       if (!imagePart?.inlineData) {
+        console.log(`⚠️ [${input.userId}] 未收到图片数据，尝试备用模型...`)
         // Try plain text generation
         const textOnlyModel = this.genAI!.getGenerativeModel({ 
           model: "gemini-1.5-pro",
@@ -158,9 +173,12 @@ export class NanoBananaService implements ImageGenService {
         ])
         
         const textOnlyResponse = await textOnlyResult.response
+        console.log(`📊 [${input.userId}] 备用模型响应接收完成`)
         const textOnlyImagePart = textOnlyResponse.candidates?.[0]?.content?.parts?.find(part => part.inlineData)
+        console.log(`🖼️ [${input.userId}] 备用模型图片响应部分: ${textOnlyImagePart ? '存在' : '不存在'}`)
         
         if (!textOnlyImagePart?.inlineData) {
+          console.log(`❌ [${input.userId}] 备用模型也未返回图片，使用模拟图片`)
           // Return mock image
           const mockImageBuffer = Buffer.from([
             0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
@@ -171,10 +189,12 @@ export class NanoBananaService implements ImageGenService {
             0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
             0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
           ])
+          console.log(`🔄 [${input.userId}] 返回模拟图片，大小: ${mockImageBuffer.length} 字节`)
           return { resultImageBuffer: mockImageBuffer }
         }
         
         const resultBuffer = Buffer.from(textOnlyImagePart.inlineData.data, 'base64')
+        console.log(`✅ [${input.userId}] 备用模型成功生成图片，大小: ${resultBuffer.length} 字节`)
         const apiEndTime = Date.now()
         const apiDuration = apiEndTime - apiStartTime
         console.log(`✅ [${input.userId}] Google API 图片生成完成，耗时: ${apiDuration}ms`)
@@ -182,6 +202,7 @@ export class NanoBananaService implements ImageGenService {
       }
       
       const resultBuffer = Buffer.from(imagePart.inlineData.data, 'base64')
+      console.log(`✅ [${input.userId}] 主模型成功生成图片，大小: ${resultBuffer.length} 字节`)
       const apiEndTime = Date.now()
       const apiDuration = apiEndTime - apiStartTime
       console.log(`✅ [${input.userId}] Google API 图片生成完成，耗时: ${apiDuration}ms`)
@@ -329,6 +350,7 @@ export class NanoBananaService implements ImageGenService {
     baseDelay: number = process.env.VERCEL ? 500 : this.config.retryDelay // Vercel环境使用更短延迟
   ): Promise<T> {
     let lastError: Error | null = null
+    console.log(`🔄 [重试机制] 最大重试次数: ${maxRetries}, 基础延迟: ${baseDelay}ms`)
     
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -338,9 +360,12 @@ export class NanoBananaService implements ImageGenService {
           await new Promise(resolve => setTimeout(resolve, delay))
         }
         
+        console.log(`🚀 [API调用] 第 ${attempt + 1} 次尝试调用...`)
         const result = await apiCall()
         if (attempt > 0) {
           console.log(`✅ [重试成功] 第 ${attempt} 次重试成功`)
+        } else {
+          console.log(`✅ [首次成功] API调用成功`)
         }
         return result
         
