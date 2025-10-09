@@ -8,16 +8,20 @@ export class NanoBananaService implements ImageGenService {
   private config = getPerformanceConfig()
 
   constructor() {
+    console.log('🔧 [NanoBanana] 初始化Google Gemini API客户端...')
     const apiKey = process.env.GOOGLE_API_KEY
+    console.log(`🔑 [NanoBanana] API密钥检查: ${apiKey ? `存在 (长度: ${apiKey.length})` : '不存在'}`)
+    
     if (apiKey && apiKey.length > 10) { // Basic validation
       try {
         this.genAI = new GoogleGenerativeAI(apiKey)
+        console.log('✅ [NanoBanana] Google Gemini API客户端初始化成功')
       } catch (error) {
-        console.warn('⚠️ Google Gemini API initialization failed:', error)
+        console.warn('⚠️ [NanoBanana] Google Gemini API initialization failed:', error)
         this.genAI = null
       }
     } else {
-      console.warn('⚠️ GOOGLE_API_KEY not set or invalid')
+      console.warn('⚠️ [NanoBanana] GOOGLE_API_KEY not set or invalid')
     }
   }
 
@@ -34,20 +38,33 @@ export class NanoBananaService implements ImageGenService {
     style: string;
     userId: string;
   }): Promise<{ resultImageBuffer: Buffer }> {
+    console.log(`🚀 [${input.userId}] 开始图片生成流程`)
+    console.log(`📝 [${input.userId}] 输入参数:`, {
+      sourceImageUrl: input.sourceImageUrl,
+      style: input.style,
+      userId: input.userId
+    })
+    
     const monitor = new PerformanceMonitor(this.config)
     monitor.start(`图片生成-${input.style}`)
     
     // 检查缓存
+    console.log(`🔍 [${input.userId}] 检查图片缓存...`)
     const cachedResult = imageCache.get(input.sourceImageUrl, input.style)
     if (cachedResult) {
+      console.log(`✅ [${input.userId}] 缓存命中，直接返回`)
       monitor.checkpoint('缓存命中')
       monitor.end(`图片生成-${input.style}`)
       return { resultImageBuffer: cachedResult }
     }
+    console.log(`❌ [${input.userId}] 缓存未命中，开始生成`)
     
+    console.log(`🔧 [${input.userId}] 验证Google API配置...`)
     const isConfigValid = this.validateConfig()
+    console.log(`🔧 [${input.userId}] 配置验证结果: ${isConfigValid ? '有效' : '无效'}`)
     
     if (!isConfigValid) {
+      console.log(`⚠️ [${input.userId}] Google API配置无效，返回模拟图片`)
       // Return mock image data (1x1 pixel PNG)
       const mockImageBuffer = Buffer.from([
         0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
@@ -70,14 +87,16 @@ export class NanoBananaService implements ImageGenService {
       
       // 记录图片下载时间
       const downloadStartTime = Date.now()
+      console.log(`📥 [${input.userId}] 开始下载源图片: ${input.sourceImageUrl}`)
       let sourceImageBuffer: Buffer
       
       try {
         sourceImageBuffer = await this.downloadImage(input.sourceImageUrl)
         const downloadEndTime = Date.now()
-        console.log(`📥 [${input.userId}] 图片下载完成，耗时: ${downloadEndTime - downloadStartTime}ms，大小: ${Math.round(sourceImageBuffer.length / 1024)}KB`)
+        console.log(`✅ [${input.userId}] 图片下载完成，耗时: ${downloadEndTime - downloadStartTime}ms，大小: ${Math.round(sourceImageBuffer.length / 1024)}KB`)
       } catch (downloadError) {
         console.error(`❌ [${input.userId}] 图片下载失败:`, downloadError)
+        console.error(`❌ [${input.userId}] 下载错误详情:`, downloadError instanceof Error ? downloadError.message : 'Unknown error')
         
         // 降级处理：使用默认图片或返回错误
         if (process.env.VERCEL) {
@@ -94,13 +113,17 @@ export class NanoBananaService implements ImageGenService {
       
       // 记录base64转换时间
       const convertStartTime = Date.now()
+      console.log(`🔄 [${input.userId}] 开始Base64转换，图片大小: ${sourceImageBuffer.length} 字节`)
       const base64Image = sourceImageBuffer.toString('base64')
       const mimeType = this.getMimeType(sourceImageBuffer)
       const convertEndTime = Date.now()
-      console.log(`🔄 [${input.userId}] Base64转换完成，耗时: ${convertEndTime - convertStartTime}ms`)
+      console.log(`✅ [${input.userId}] Base64转换完成，耗时: ${convertEndTime - convertStartTime}ms，Base64长度: ${base64Image.length} 字符`)
+      console.log(`📄 [${input.userId}] 检测到MIME类型: ${mimeType}`)
       
       // Build prompt
+      console.log(`📝 [${input.userId}] 构建提示词...`)
       const prompt = this.buildPrompt(input.style)
+      console.log(`📝 [${input.userId}] 提示词构建完成: ${prompt.substring(0, 200)}...`)
       
       // Use Gemini to generate image - 修复模型名称
       console.log(`🤖 [${input.userId}] 开始初始化Gemini模型: gemini-2.5-flash-image`)
@@ -124,6 +147,18 @@ export class NanoBananaService implements ImageGenService {
       
       const result = await this.callWithRetry(async () => {
         console.log(`🔄 [${input.userId}] 执行generateContent调用...`)
+        console.log(`📤 [${input.userId}] 发送到Google API的请求数据:`)
+        console.log(`📤 [${input.userId}] - 文本部分长度: ${prompt.length} 字符`)
+        console.log(`📤 [${input.userId}] - 图片数据长度: ${base64Image.length} 字符`)
+        console.log(`📤 [${input.userId}] - 图片MIME类型: ${mimeType}`)
+        console.log(`📤 [${input.userId}] - 模型配置:`, {
+          model: "gemini-2.5-flash-image",
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024
+        })
+        
         const response = await model.generateContent([
           {
             text: prompt
