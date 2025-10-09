@@ -53,10 +53,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const getSession = async () => {
       try {
         console.log('🔍 [认证] 开始检查会话状态')
+        
+        // 强制刷新会话状态
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (error) {
           console.error('❌ [认证] 获取会话失败:', error)
+          setAuthInitialized(true)
           setIsLoading(false)
           return
         }
@@ -64,7 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('🔍 [认证] 会话状态:', {
           hasSession: !!session,
           hasUser: !!session?.user,
-          userId: session?.user?.id
+          userId: session?.user?.id,
+          sessionExpiry: session?.expires_at
         })
 
         if (session?.user) {
@@ -83,9 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } finally {
         // 添加短暂延迟确保认证状态完全同步
         setTimeout(() => {
+          console.log('⏰ [认证] 认证初始化完成')
           setAuthInitialized(true)
           setIsLoading(false)
-        }, 100)
+        }, 200)
       }
     }
 
@@ -94,11 +99,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session: any) => {
-        console.log('🔄 [认证] 状态变化:', { event, hasSession: !!session, hasUser: !!session?.user })
+        console.log('🔄 [认证] 状态变化:', { 
+          event, 
+          hasSession: !!session, 
+          hasUser: !!session?.user,
+          userId: session?.user?.id,
+          timestamp: new Date().toISOString()
+        })
         
         if (session?.user) {
           try {
+            console.log('👤 [认证] 状态变化：开始获取用户资料')
             await fetchUserProfile(session.user)
+            console.log('✅ [认证] 状态变化：用户资料获取完成')
             setAuthInitialized(true)
             setIsLoading(false)
           } catch (error) {
@@ -122,11 +135,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     if (!supabase) {
-      console.error('Supabase client not initialized')
+      console.error('❌ [认证] Supabase client not initialized')
       return
     }
 
     try {
+      console.log('🔍 [认证] 开始查询用户profile，用户ID:', supabaseUser.id)
+      
+      // 首先检查当前认证状态
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      console.log('🔍 [认证] 当前认证用户:', currentUser?.id)
+      
+      if (!currentUser) {
+        console.error('❌ [认证] 当前用户未认证，无法查询profile')
+        return
+      }
+      
       // 从数据库获取用户profile数据
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -135,20 +159,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single()
 
       if (error) {
-        console.error('Error fetching user profile:', error)
-        // 如果profile不存在，创建一个默认的
-        const userData: User = {
-          id: supabaseUser.id,
-          username: supabaseUser.email?.split('@')[0] || 'user',
-          email: supabaseUser.email || '',
-          credits: 3,
-          full_name: supabaseUser.user_metadata?.full_name,
-          avatar_url: supabaseUser.user_metadata?.avatar_url
+        console.error('❌ [认证] 查询用户profile失败:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        
+        // 检查是否是profile不存在的错误
+        if (error.code === 'PGRST116') {
+          console.log('ℹ️ [认证] 用户profile不存在，创建默认数据')
+          const userData: User = {
+            id: supabaseUser.id,
+            username: supabaseUser.email?.split('@')[0] || 'user',
+            email: supabaseUser.email || '',
+            credits: 3,
+            full_name: supabaseUser.user_metadata?.full_name,
+            avatar_url: supabaseUser.user_metadata?.avatar_url
+          }
+          setUser(userData)
+          return
+        } else if (error.code === '42501') {
+          console.error('❌ [认证] RLS策略阻止查询，权限不足')
+          // 权限问题，使用默认数据
+          const userData: User = {
+            id: supabaseUser.id,
+            username: supabaseUser.email?.split('@')[0] || 'user',
+            email: supabaseUser.email || '',
+            credits: 3,
+            full_name: supabaseUser.user_metadata?.full_name,
+            avatar_url: supabaseUser.user_metadata?.avatar_url
+          }
+          setUser(userData)
+          return
+        } else {
+          // 其他错误，不设置用户状态
+          console.error('❌ [认证] 数据库查询错误，不设置用户状态')
+          return
         }
-        setUser(userData)
-        return
       }
 
+      console.log('✅ [认证] 成功获取用户profile:', profile)
+      
       // 使用数据库中的profile数据
       const userData: User = {
         id: profile.user_id,
@@ -159,19 +211,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar_url: supabaseUser.user_metadata?.avatar_url
       }
       
+      console.log('👤 [认证] 设置用户数据:', userData)
       setUser(userData)
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error)
-      // 出错时使用默认数据
-      const userData: User = {
-        id: supabaseUser.id,
-        username: supabaseUser.email?.split('@')[0] || 'user',
-        email: supabaseUser.email || '',
-        credits: 3,
-        full_name: supabaseUser.user_metadata?.full_name,
-        avatar_url: supabaseUser.user_metadata?.avatar_url
-      }
-      setUser(userData)
+      console.error('❌ [认证] fetchUserProfile异常:', error)
+      // 出错时不设置用户状态，让认证流程重新开始
+      console.log('⚠️ [认证] 发生异常，不设置用户状态')
     }
   }
 
