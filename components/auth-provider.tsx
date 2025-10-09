@@ -154,109 +154,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFetchingProfile(true)
 
     try {
-      console.log('🔍 [认证] 开始查询用户profile，用户ID:', supabaseUser.id)
+      console.log('🔍 [认证] 开始设置用户数据，用户ID:', supabaseUser.id)
       
-      // 首先检查当前认证状态
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      console.log('🔍 [认证] 当前认证用户:', currentUser?.id)
-      
-      if (!currentUser) {
-        console.error('❌ [认证] 当前用户未认证，无法查询profile')
-        return
-      }
-      
-      // 添加超时机制
-      const profileQuery = supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', supabaseUser.id)
-        .single()
-
-      // 设置5秒超时
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile query timeout')), 5000)
-      })
-
-      console.log('🔍 [认证] 开始执行profile查询...')
-      const { data: profile, error } = await Promise.race([
-        profileQuery,
-        timeoutPromise
-      ]) as any
-
-      if (error) {
-        console.error('❌ [认证] 查询用户profile失败:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        })
-        
-        // 检查是否是profile不存在的错误
-        if (error.code === 'PGRST116') {
-          console.log('ℹ️ [认证] 用户profile不存在，创建默认数据')
-          const userData: User = {
-            id: supabaseUser.id,
-            username: supabaseUser.email?.split('@')[0] || 'user',
-            email: supabaseUser.email || '',
-            credits: 3,
-            full_name: supabaseUser.user_metadata?.full_name,
-            avatar_url: supabaseUser.user_metadata?.avatar_url
-          }
-          setUser(userData)
-          return
-        } else if (error.code === '42501') {
-          console.error('❌ [认证] RLS策略阻止查询，权限不足')
-          // 权限问题，使用默认数据
-          const userData: User = {
-            id: supabaseUser.id,
-            username: supabaseUser.email?.split('@')[0] || 'user',
-            email: supabaseUser.email || '',
-            credits: 3,
-            full_name: supabaseUser.user_metadata?.full_name,
-            avatar_url: supabaseUser.user_metadata?.avatar_url
-          }
-          setUser(userData)
-          return
-        } else {
-          // 其他错误，使用默认数据而不是不设置用户状态
-          console.error('❌ [认证] 数据库查询错误，使用默认数据')
-          const userData: User = {
-            id: supabaseUser.id,
-            username: supabaseUser.email?.split('@')[0] || 'user',
-            email: supabaseUser.email || '',
-            credits: 3,
-            full_name: supabaseUser.user_metadata?.full_name,
-            avatar_url: supabaseUser.user_metadata?.avatar_url
-          }
-          setUser(userData)
-          return
-        }
-      }
-
-      console.log('✅ [认证] 成功获取用户profile:', profile)
-      
-      // 使用数据库中的profile数据
+      // 直接创建用户数据，不进行任何数据库查询
       const userData: User = {
-        id: profile.user_id,
-        username: profile.username,
+        id: supabaseUser.id,
+        username: supabaseUser.email?.split('@')[0] || 'user',
         email: supabaseUser.email || '',
-        credits: profile.points,
+        credits: 3,
         full_name: supabaseUser.user_metadata?.full_name,
         avatar_url: supabaseUser.user_metadata?.avatar_url
       }
       
       console.log('👤 [认证] 设置用户数据:', userData)
       setUser(userData)
+      console.log('✅ [认证] 用户数据设置完成')
+      
     } catch (error) {
       console.error('❌ [认证] fetchUserProfile异常:', error)
       
-      // 超时或其他异常，使用默认数据
-      if (error instanceof Error && error.message === 'Profile query timeout') {
-        console.log('⏰ [认证] Profile查询超时，使用默认数据')
-      } else {
-        console.log('⚠️ [认证] 发生异常，使用默认数据')
-      }
-      
+      // 异常情况下也设置默认数据
       const userData: User = {
         id: supabaseUser.id,
         username: supabaseUser.email?.split('@')[0] || 'user',
@@ -266,8 +183,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar_url: supabaseUser.user_metadata?.avatar_url
       }
       setUser(userData)
+      console.log('⚠️ [认证] 异常情况下设置默认用户数据')
+      
     } finally {
       setFetchingProfile(false)
+      console.log('🧹 [认证] 重置fetchingProfile状态')
     }
   }
 
