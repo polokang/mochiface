@@ -33,9 +33,18 @@ export function Navbar() {
   }
 
   const handleSignOut = async () => {
-    await logout()
-    router.push('/')
-    setIsMobileMenuOpen(false)
+    try {
+      console.log('🚪 [Navbar] 开始登出流程')
+      await logout()
+      console.log('✅ [Navbar] 登出完成，重定向到首页')
+      router.push('/')
+      setIsMobileMenuOpen(false)
+    } catch (error) {
+      console.error('❌ [Navbar] 登出失败:', error)
+      // 即使登出失败，也尝试重定向
+      router.push('/')
+      setIsMobileMenuOpen(false)
+    }
   }
 
   const toggleMobileMenu = () => {

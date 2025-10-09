@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [supabaseError, setSupabaseError] = useState<string | null>(null)
   const [supabase, setSupabase] = useState<any>(null)
   const [authInitialized, setAuthInitialized] = useState(false)
+  const [fetchingProfile, setFetchingProfile] = useState(false)
   
   // Safely create Supabase client
   useEffect(() => {
@@ -139,6 +140,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
+    // 防止重复调用
+    if (fetchingProfile) {
+      console.log('ℹ️ [认证] 正在获取用户资料，跳过重复调用')
+      return
+    }
+
+    if (user && user.id === supabaseUser.id) {
+      console.log('ℹ️ [认证] 用户资料已存在，跳过重复查询')
+      return
+    }
+
+    setFetchingProfile(true)
+
     try {
       console.log('🔍 [认证] 开始查询用户profile，用户ID:', supabaseUser.id)
       
@@ -151,12 +165,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
       
-      // 从数据库获取用户profile数据
-      const { data: profile, error } = await supabase
+      // 添加超时机制
+      const profileQuery = supabase
         .from('profiles')
         .select('*')
         .eq('user_id', supabaseUser.id)
         .single()
+
+      // 设置5秒超时
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile query timeout')), 5000)
+      })
+
+      console.log('🔍 [认证] 开始执行profile查询...')
+      const { data: profile, error } = await Promise.race([
+        profileQuery,
+        timeoutPromise
+      ]) as any
 
       if (error) {
         console.error('❌ [认证] 查询用户profile失败:', {
@@ -193,8 +218,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData)
           return
         } else {
-          // 其他错误，不设置用户状态
-          console.error('❌ [认证] 数据库查询错误，不设置用户状态')
+          // 其他错误，使用默认数据而不是不设置用户状态
+          console.error('❌ [认证] 数据库查询错误，使用默认数据')
+          const userData: User = {
+            id: supabaseUser.id,
+            username: supabaseUser.email?.split('@')[0] || 'user',
+            email: supabaseUser.email || '',
+            credits: 3,
+            full_name: supabaseUser.user_metadata?.full_name,
+            avatar_url: supabaseUser.user_metadata?.avatar_url
+          }
+          setUser(userData)
           return
         }
       }
@@ -215,8 +249,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(userData)
     } catch (error) {
       console.error('❌ [认证] fetchUserProfile异常:', error)
-      // 出错时不设置用户状态，让认证流程重新开始
-      console.log('⚠️ [认证] 发生异常，不设置用户状态')
+      
+      // 超时或其他异常，使用默认数据
+      if (error instanceof Error && error.message === 'Profile query timeout') {
+        console.log('⏰ [认证] Profile查询超时，使用默认数据')
+      } else {
+        console.log('⚠️ [认证] 发生异常，使用默认数据')
+      }
+      
+      const userData: User = {
+        id: supabaseUser.id,
+        username: supabaseUser.email?.split('@')[0] || 'user',
+        email: supabaseUser.email || '',
+        credits: 3,
+        full_name: supabaseUser.user_metadata?.full_name,
+        avatar_url: supabaseUser.user_metadata?.avatar_url
+      }
+      setUser(userData)
+    } finally {
+      setFetchingProfile(false)
     }
   }
 
@@ -232,11 +283,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      console.log('🚪 [认证] 开始登出')
       await supabase.auth.signOut()
+      console.log('✅ [认证] 登出成功')
     } catch (error) {
-      console.error('Error signing out:', error)
+      console.error('❌ [认证] 登出失败:', error)
+    } finally {
+      // 无论登出是否成功，都清除本地用户状态
+      setUser(null)
+      console.log('🧹 [认证] 清除本地用户状态')
     }
-    setUser(null)
   }
 
   const signInWithGoogle = async () => {

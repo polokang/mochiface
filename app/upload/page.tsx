@@ -51,6 +51,13 @@ export default function UploadPage() {
     fetchStyles()
   }, [])
 
+  // 使用useEffect来处理路由跳转，避免在渲染过程中调用setState
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -174,13 +181,6 @@ export default function UploadPage() {
       </div>
     )
   }
-
-  // 使用useEffect来处理路由跳转，避免在渲染过程中调用setState
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    }
-  }, [user, loading, router])
 
   if (!user) {
     return null
