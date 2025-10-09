@@ -233,30 +233,61 @@ export class NanoBananaService implements ImageGenService {
   }
 
   private async downloadImage(url: string): Promise<Buffer> {
-    const maxRetries = process.env.VERCEL ? 3 : 2
-    const baseTimeout = process.env.VERCEL ? 8000 : 15000
+    const maxRetries = process.env.VERCEL ? 5 : 3 // 增加重试次数
+    const baseTimeout = process.env.VERCEL ? 5000 : 10000 // 减少单次超时时间，但增加重试次数
+    
+    console.log(`📥 [图片下载] 开始下载图片: ${url}`)
+    console.log(`📥 [图片下载] 最大重试次数: ${maxRetries}, 基础超时: ${baseTimeout}ms`)
     
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        // 使用递增的超时时间
-        const timeout = baseTimeout + (attempt * 2000)
+        // 使用递增的超时时间，但限制最大超时时间
+        const timeout = Math.min(baseTimeout + (attempt * 2000), 15000) // 最大15秒
         console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 超时时间: ${timeout}ms`)
+        console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 开始fetch请求...`)
         
-        const response = await fetch(url, {
-          signal: AbortSignal.timeout(timeout),
-          headers: {
-            'Accept': 'image/*',
-            'Cache-Control': 'no-cache',
-            'User-Agent': 'MochiFace/1.0',
-            'Connection': 'keep-alive'
-          }
-        })
+        const startTime = Date.now()
+        
+        // 在Vercel环境中，尝试使用不同的下载策略
+        let response;
+        if (process.env.VERCEL && attempt > 1) {
+          console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 使用备用下载方法...`)
+          // 使用更简单的请求配置
+          response = await fetch(url, {
+            signal: AbortSignal.timeout(timeout),
+            method: 'GET',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; MochiFace/1.0)',
+              'Accept': '*/*'
+            }
+          })
+        } else {
+          response = await fetch(url, {
+            signal: AbortSignal.timeout(timeout),
+            headers: {
+              'Accept': 'image/*',
+              'Cache-Control': 'no-cache',
+              'User-Agent': 'MochiFace/1.0',
+              'Connection': 'keep-alive'
+            }
+          })
+        }
+        
+        const fetchTime = Date.now() - startTime
+        console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] fetch完成，耗时: ${fetchTime}ms`)
+        
+        console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 响应状态: ${response.status} ${response.statusText}`)
+        console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 响应头: Content-Type: ${response.headers.get('content-type')}, Content-Length: ${response.headers.get('content-length')}`)
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
         
+        console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 开始读取响应数据...`)
+        const arrayBufferStartTime = Date.now()
         const buffer = Buffer.from(await response.arrayBuffer())
+        const arrayBufferTime = Date.now() - arrayBufferStartTime
+        console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 数据读取完成，耗时: ${arrayBufferTime}ms`)
         console.log(`✅ [下载成功] 大小: ${Math.round(buffer.length / 1024)}KB`)
         
         // 图片大小优化 - 如果图片太大则压缩
@@ -265,20 +296,27 @@ export class NanoBananaService implements ImageGenService {
           return this.compressImage(buffer)
         }
         
+        console.log(`✅ [图片下载] 下载完成，总耗时: ${Date.now() - startTime}ms`)
         return buffer
         
       } catch (error) {
         const isLastAttempt = attempt === maxRetries - 1
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        const errorType = error instanceof Error ? error.constructor.name : 'Unknown'
         
-        console.warn(`⚠️ [下载失败 ${attempt + 1}/${maxRetries}] ${errorMessage}`)
+        console.warn(`⚠️ [下载失败 ${attempt + 1}/${maxRetries}] 错误类型: ${errorType}`)
+        console.warn(`⚠️ [下载失败 ${attempt + 1}/${maxRetries}] 错误信息: ${errorMessage}`)
+        console.warn(`⚠️ [下载失败 ${attempt + 1}/${maxRetries}] 错误堆栈:`, error instanceof Error ? error.stack : 'No stack trace')
         
         if (isLastAttempt) {
+          console.error(`❌ [图片下载] 所有重试尝试都失败了，抛出错误`)
           throw new Error(`Failed to download source image after ${maxRetries} attempts: ${errorMessage}`)
+        } else {
+          console.log(`🔄 [图片下载] 准备进行第 ${attempt + 2} 次重试...`)
         }
         
-        // 等待后重试
-        const delay = 1000 * (attempt + 1)
+        // 等待后重试，使用更短的延迟
+        const delay = process.env.VERCEL ? 500 * (attempt + 1) : 1000 * (attempt + 1)
         console.log(`⏳ 等待 ${delay}ms 后重试...`)
         await new Promise(resolve => setTimeout(resolve, delay))
       }
