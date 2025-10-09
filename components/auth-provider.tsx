@@ -179,10 +179,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      // 使用环境变量中的站点URL，确保在生产环境中使用正确的域名
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+      const redirectUrl = `${siteUrl}/auth/callback`
+      
+      console.log('🔗 Google SSO 重定向URL:', redirectUrl)
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: redirectUrl
         }
       })
 
