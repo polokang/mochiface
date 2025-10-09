@@ -70,9 +70,27 @@ export class NanoBananaService implements ImageGenService {
       
       // 记录图片下载时间
       const downloadStartTime = Date.now()
-      const sourceImageBuffer = await this.downloadImage(input.sourceImageUrl)
-      const downloadEndTime = Date.now()
-      console.log(`📥 [${input.userId}] 图片下载完成，耗时: ${downloadEndTime - downloadStartTime}ms，大小: ${Math.round(sourceImageBuffer.length / 1024)}KB`)
+      let sourceImageBuffer: Buffer
+      
+      try {
+        sourceImageBuffer = await this.downloadImage(input.sourceImageUrl)
+        const downloadEndTime = Date.now()
+        console.log(`📥 [${input.userId}] 图片下载完成，耗时: ${downloadEndTime - downloadStartTime}ms，大小: ${Math.round(sourceImageBuffer.length / 1024)}KB`)
+      } catch (downloadError) {
+        console.error(`❌ [${input.userId}] 图片下载失败:`, downloadError)
+        
+        // 降级处理：使用默认图片或返回错误
+        if (process.env.VERCEL) {
+          // 在Vercel环境中，如果下载失败，返回一个简单的错误图片
+          const errorImageBuffer = this.createErrorImage(input.style)
+          const downloadEndTime = Date.now()
+          console.log(`🔄 [${input.userId}] 使用降级图片，耗时: ${downloadEndTime - downloadStartTime}ms`)
+          sourceImageBuffer = errorImageBuffer
+        } else {
+          // 在本地环境中，重新抛出错误
+          throw downloadError
+        }
+      }
       
       // 记录base64转换时间
       const convertStartTime = Date.now()
@@ -194,30 +212,58 @@ export class NanoBananaService implements ImageGenService {
   }
 
   private async downloadImage(url: string): Promise<Buffer> {
-    try {
-      const response = await fetch(url, {
-        // 使用配置的超时时间
-        signal: AbortSignal.timeout(this.config.apiTimeout),
-        headers: {
-          'Accept': 'image/*',
-          'Cache-Control': 'no-cache'
+    const maxRetries = process.env.VERCEL ? 3 : 2
+    const baseTimeout = process.env.VERCEL ? 8000 : 15000
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        // 使用递增的超时时间
+        const timeout = baseTimeout + (attempt * 2000)
+        console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 超时时间: ${timeout}ms`)
+        
+        const response = await fetch(url, {
+          signal: AbortSignal.timeout(timeout),
+          headers: {
+            'Accept': 'image/*',
+            'Cache-Control': 'no-cache',
+            'User-Agent': 'MochiFace/1.0',
+            'Connection': 'keep-alive'
+          }
+        })
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
-      })
-      if (!response.ok) {
-        throw new Error(`Failed to download image: ${response.status}`)
+        
+        const buffer = Buffer.from(await response.arrayBuffer())
+        console.log(`✅ [下载成功] 大小: ${Math.round(buffer.length / 1024)}KB`)
+        
+        // 图片大小优化 - 如果图片太大则压缩
+        if (buffer.length > this.config.maxImageSize) {
+          console.log(`📦 图片过大 (${Math.round(buffer.length / 1024 / 1024)}MB)，进行压缩处理`)
+          return this.compressImage(buffer)
+        }
+        
+        return buffer
+        
+      } catch (error) {
+        const isLastAttempt = attempt === maxRetries - 1
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        
+        console.warn(`⚠️ [下载失败 ${attempt + 1}/${maxRetries}] ${errorMessage}`)
+        
+        if (isLastAttempt) {
+          throw new Error(`Failed to download source image after ${maxRetries} attempts: ${errorMessage}`)
+        }
+        
+        // 等待后重试
+        const delay = 1000 * (attempt + 1)
+        console.log(`⏳ 等待 ${delay}ms 后重试...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
       }
-      const buffer = Buffer.from(await response.arrayBuffer())
-      
-      // 图片大小优化 - 如果图片太大则压缩
-      if (buffer.length > this.config.maxImageSize) {
-        console.log(`📦 图片过大 (${Math.round(buffer.length / 1024 / 1024)}MB)，进行压缩处理`)
-        return this.compressImage(buffer)
-      }
-      
-      return buffer
-    } catch (error) {
-      throw new Error(`Failed to download source image: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
+    
+    throw new Error('Unexpected error in downloadImage')
   }
 
   private compressImage(buffer: Buffer): Buffer {
@@ -225,6 +271,26 @@ export class NanoBananaService implements ImageGenService {
     // 目前先返回原图，后续可以添加更复杂的压缩逻辑
     console.log('📦 图片压缩功能待实现，建议集成sharp库')
     return buffer
+  }
+
+  /**
+   * 创建错误图片（当下载失败时使用）
+   */
+  private createErrorImage(style: string): Buffer {
+    // 创建一个简单的错误提示图片
+    // 这里返回一个1x1像素的PNG图片，实际应用中可以创建一个更友好的错误图片
+    const errorImageBuffer = Buffer.from([
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
+      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
+      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR data
+      0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
+      0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
+      0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
+    ])
+    
+    console.log(`🔄 [降级处理] 为样式 ${style} 创建错误图片`)
+    return errorImageBuffer
   }
 
   private getMimeType(buffer: Buffer): string {
@@ -259,8 +325,8 @@ export class NanoBananaService implements ImageGenService {
    */
   private async callWithRetry<T>(
     apiCall: () => Promise<T>,
-    maxRetries: number = this.config.maxRetries,
-    baseDelay: number = this.config.retryDelay
+    maxRetries: number = process.env.VERCEL ? 1 : this.config.maxRetries, // Vercel环境减少重试次数
+    baseDelay: number = process.env.VERCEL ? 500 : this.config.retryDelay // Vercel环境使用更短延迟
   ): Promise<T> {
     let lastError: Error | null = null
     

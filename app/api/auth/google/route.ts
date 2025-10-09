@@ -58,40 +58,36 @@ export async function POST(request: NextRequest) {
         counter++
       }
 
-      // 创建用户档案 - 使用 SQL 直接插入以绕过 RLS
-      const { error: insertError } = await supabase.rpc('create_user_profile', {
-        p_user_id: user.id,
-        p_username: finalUsername,
-        p_full_name: user.user_metadata?.full_name || null,
-        p_avatar_url: user.user_metadata?.avatar_url || null,
-        p_email: user.email,
-        p_points: 3
-      })
+      // 创建用户档案 - 直接插入
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: user.id,
+          username: finalUsername,
+          points: 3
+        })
 
       if (insertError) {
         console.error('Error creating user profile:', insertError)
-        // 如果 RPC 失败，尝试直接 SQL 插入
-        const { error: directInsertError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: user.id,
-            username: finalUsername,
-            full_name: user.user_metadata?.full_name || null,
-            avatar_url: user.user_metadata?.avatar_url || null,
-            email: user.email,
-            points: 3
-          })
-
-        if (directInsertError) {
-          console.error('Direct insert also failed:', directInsertError)
-          return NextResponse.json(
-            { error: '创建用户档案失败' },
-            { status: 500 }
-          )
-        }
+        return NextResponse.json(
+          { error: '创建用户档案失败' },
+          { status: 500 }
+        )
       }
 
-      // 积分分配已在 RPC 函数中处理
+      // 创建积分流水记录
+      const { error: creditError } = await supabase
+        .from('credit_transactions')
+        .insert({
+          user_id: user.id,
+          delta: 3,
+          reason: 'signup_bonus'
+        })
+
+      if (creditError) {
+        console.error('Error creating credit transaction:', creditError)
+        // 不阻止用户创建，只是记录错误
+      }
     } else {
       // 更新最后登录时间
       await updateLastLogin(user.id)

@@ -6,6 +6,14 @@
       "use": "@vercel/next"
     }
   ],
+  "functions": {
+    "app/api/image/generate/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/upload-image/route.ts": {
+      "maxDuration": 30
+    }
+  },
   "headers": [
     {
       "source": "/images/(.*)",

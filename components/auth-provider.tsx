@@ -99,17 +99,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
-    // Create user data directly, not relying on database query
-    const userData: User = {
-      id: supabaseUser.id,
-      username: supabaseUser.email?.split('@')[0] || 'user',
-      email: supabaseUser.email || '',
-      credits: 3, // Give new users 3 credits
-      full_name: supabaseUser.user_metadata?.full_name,
-      avatar_url: supabaseUser.user_metadata?.avatar_url
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      return
     }
-    
-    setUser(userData)
+
+    try {
+      // 从数据库获取用户profile数据
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', supabaseUser.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching user profile:', error)
+        // 如果profile不存在，创建一个默认的
+        const userData: User = {
+          id: supabaseUser.id,
+          username: supabaseUser.email?.split('@')[0] || 'user',
+          email: supabaseUser.email || '',
+          credits: 3,
+          full_name: supabaseUser.user_metadata?.full_name,
+          avatar_url: supabaseUser.user_metadata?.avatar_url
+        }
+        setUser(userData)
+        return
+      }
+
+      // 使用数据库中的profile数据
+      const userData: User = {
+        id: profile.user_id,
+        username: profile.username,
+        email: supabaseUser.email || '',
+        credits: profile.points,
+        full_name: supabaseUser.user_metadata?.full_name,
+        avatar_url: supabaseUser.user_metadata?.avatar_url
+      }
+      
+      setUser(userData)
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error)
+      // 出错时使用默认数据
+      const userData: User = {
+        id: supabaseUser.id,
+        username: supabaseUser.email?.split('@')[0] || 'user',
+        email: supabaseUser.email || '',
+        credits: 3,
+        full_name: supabaseUser.user_metadata?.full_name,
+        avatar_url: supabaseUser.user_metadata?.avatar_url
+      }
+      setUser(userData)
+    }
   }
 
   const login = (token: string, userData: User) => {

@@ -27,24 +27,24 @@ export interface PerformanceConfig {
 
 export const DEFAULT_PERFORMANCE_CONFIG: PerformanceConfig = {
   // API配置 - 针对Google Gemini优化
-  apiTimeout: 30000, // 30秒超时
-  maxRetries: 2, // 最多重试2次
-  retryDelay: 1000, // 1秒基础延迟
+  apiTimeout: process.env.VERCEL ? 15000 : 30000, // Vercel环境15秒，本地30秒
+  maxRetries: process.env.VERCEL ? 1 : 2, // Vercel环境减少重试
+  retryDelay: process.env.VERCEL ? 300 : 1000, // Vercel环境更短延迟
   
   // 图片处理配置
-  maxImageSize: 5 * 1024 * 1024, // 5MB
+  maxImageSize: process.env.VERCEL ? 2 * 1024 * 1024 : 5 * 1024 * 1024, // Vercel环境2MB限制
   enableCompression: true, // 启用压缩
   compressionQuality: 0.8, // 80%质量
   
   // 缓存配置
   enableCache: true, // 启用缓存
   cacheExpiry: 24 * 60 * 60 * 1000, // 24小时
-  maxCacheSize: 100, // 100MB
+  maxCacheSize: process.env.VERCEL ? 30 : 100, // Vercel环境进一步减少缓存大小
   
   // 监控配置
   enableDetailedLogging: true, // 启用详细日志
   logSlowRequests: true, // 记录慢请求
-  slowRequestThreshold: 5000, // 5秒阈值
+  slowRequestThreshold: process.env.VERCEL ? 2000 : 5000, // Vercel环境2秒阈值
 };
 
 /**
