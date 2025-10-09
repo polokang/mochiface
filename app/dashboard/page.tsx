@@ -130,8 +130,22 @@ export default function DashboardPage() {
 
   // Use useEffect to handle redirects, avoid calling setState during rendering
   useEffect(() => {
+    console.log('🔍 [Dashboard] 认证状态检查:', { 
+      loading, 
+      hasUser: !!user, 
+      userId: user?.id,
+      timestamp: new Date().toISOString()
+    })
+    
+    // 只有在认证完全初始化后才进行重定向检查
     if (!loading && !user) {
-      router.push('/login')
+      console.log('🚪 [Dashboard] 用户未认证，重定向到登录页面')
+      // 添加短暂延迟避免过快重定向
+      const timer = setTimeout(() => {
+        router.push('/login')
+      }, 500)
+      
+      return () => clearTimeout(timer)
     }
   }, [loading, user, router])
 

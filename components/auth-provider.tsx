@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setIsLoading] = useState(true)
   const [supabaseError, setSupabaseError] = useState<string | null>(null)
   const [supabase, setSupabase] = useState<any>(null)
+  const [authInitialized, setAuthInitialized] = useState(false)
   
   // Safely create Supabase client
   useEffect(() => {
@@ -51,25 +52,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Get current session
     const getSession = async () => {
       try {
+        console.log('🔍 [认证] 开始检查会话状态')
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (error) {
-          console.error('Error getting session:', error)
+          console.error('❌ [认证] 获取会话失败:', error)
           setIsLoading(false)
           return
         }
 
+        console.log('🔍 [认证] 会话状态:', {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userId: session?.user?.id
+        })
+
         if (session?.user) {
           try {
+            console.log('👤 [认证] 开始获取用户资料')
             await fetchUserProfile(session.user)
+            console.log('✅ [认证] 用户资料获取成功')
           } catch (error) {
-            console.error('Error fetching user profile:', error)
+            console.error('❌ [认证] 获取用户资料失败:', error)
           }
+        } else {
+          console.log('ℹ️ [认证] 无有效会话')
         }
       } catch (error) {
-        console.error('Session check error:', error)
+        console.error('❌ [认证] 会话检查错误:', error)
       } finally {
-        setIsLoading(false)
+        // 添加短暂延迟确保认证状态完全同步
+        setTimeout(() => {
+          setAuthInitialized(true)
+          setIsLoading(false)
+        }, 100)
       }
     }
 
@@ -78,16 +94,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session: any) => {
+        console.log('🔄 [认证] 状态变化:', { event, hasSession: !!session, hasUser: !!session?.user })
+        
         if (session?.user) {
           try {
             await fetchUserProfile(session.user)
+            setAuthInitialized(true)
             setIsLoading(false)
           } catch (error) {
-            console.error('Error fetching user profile:', error)
+            console.error('❌ [认证] 状态变化时获取用户资料失败:', error)
+            setAuthInitialized(true)
             setIsLoading(false)
           }
         } else {
+          console.log('🚪 [认证] 用户登出或会话失效')
           setUser(null)
+          setAuthInitialized(true)
           setIsLoading(false)
         }
       }
