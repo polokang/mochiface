@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { ImageIcon, Sparkles, Download, Gift } from 'lucide-react'
+import { IMAGE_STYLES } from '@/lib/image-gen'
+import Image from 'next/image'
 
 export default function HomePage() {
   return (
@@ -36,47 +38,32 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Features Section */}
+        {/* Features Section - 展示四种风格 */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Why Choose MochiFace?
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <ImageIcon className="h-6 w-6 text-blue-600" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {IMAGE_STYLES.slice(0, 4).map((style) => (
+              <Card key={style.id} className="overflow-hidden hover:shadow-lg transition-shadow group">
+                <div className="relative h-56 w-full bg-gray-100">
+                  <Image
+                    src={style.thumbnail}
+                    alt={style.name}
+                    fill
+                    className="object-contain group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    priority={false}
+                  />
                 </div>
-                <CardTitle>Multiple Styles</CardTitle>
-                <CardDescription>
-                  Offers cartoon, anime, watercolor, vintage and other artistic styles to meet different preferences
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                  <Download className="h-6 w-6 text-green-600" />
-                </div>
-                <CardTitle>High Quality Output</CardTitle>
-                <CardDescription>
-                  Uses advanced AI technology to generate high-resolution, high-quality stylized avatars
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                  <Gift className="h-6 w-6 text-purple-600" />
-                </div>
-                <CardTitle>Credit System</CardTitle>
-                <CardDescription>
-                  New users get 3 free credits, complete tasks to earn more credits, cost-effective
-                </CardDescription>
-              </CardHeader>
-            </Card>
+                <CardHeader className="p-4">
+                  <CardTitle className="text-lg font-semibold">{style.name}</CardTitle>
+                  <CardDescription className="text-sm text-gray-600 leading-relaxed">
+                    {style.description}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
           </div>
         </section>
 
