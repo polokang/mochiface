@@ -125,10 +125,10 @@ export class NanoBananaService implements ImageGenService {
       const prompt = this.buildPrompt(input.style)
       console.log(`📝 [${input.userId}] 提示词构建完成: ${prompt.substring(0, 200)}...`)
       
-      // Use Gemini to generate image - 修复模型名称
+      // Use Gemini to generate image - 使用最新的图片生成模型
       console.log(`🤖 [${input.userId}] 开始初始化Gemini模型: gemini-2.5-flash-image`)
       const model = this.genAI!.getGenerativeModel({ 
-        model: "gemini-2.5-flash-image", // 使用可用的pro模型
+        model: "gemini-2.5-flash-image", // 使用最新的图片生成模型
         generationConfig: {
           temperature: 0.7,
           topK: 40,
@@ -189,51 +189,19 @@ export class NanoBananaService implements ImageGenService {
       console.log(`🖼️ [${input.userId}] 图片响应部分: ${imagePart ? '存在' : '不存在'}`)
       
       if (!imagePart?.inlineData) {
-        console.log(`⚠️ [${input.userId}] 未收到图片数据，尝试备用模型...`)
-        // Try plain text generation
-        const textOnlyModel = this.genAI!.getGenerativeModel({ 
-          model: "gemini-1.5-pro",
-          generationConfig: {
-            temperature: 0.8,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 1024,
-          }
-        })
-        
-        const textOnlyResult = await textOnlyModel.generateContent([
-          {
-            text: `Create a high-quality ${input.style} style image. ${prompt}`
-          }
+        console.log(`❌ [${input.userId}] 未收到图片数据，返回模拟图片`)
+        // Return mock image
+        const mockImageBuffer = Buffer.from([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
+          0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+          0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
+          0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR data
+          0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
+          0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
+          0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
         ])
-        
-        const textOnlyResponse = await textOnlyResult.response
-        console.log(`📊 [${input.userId}] 备用模型响应接收完成`)
-        const textOnlyImagePart = textOnlyResponse.candidates?.[0]?.content?.parts?.find(part => part.inlineData)
-        console.log(`🖼️ [${input.userId}] 备用模型图片响应部分: ${textOnlyImagePart ? '存在' : '不存在'}`)
-        
-        if (!textOnlyImagePart?.inlineData) {
-          console.log(`❌ [${input.userId}] 备用模型也未返回图片，使用模拟图片`)
-          // Return mock image
-          const mockImageBuffer = Buffer.from([
-            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
-            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
-            0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR data
-            0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
-            0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
-            0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
-          ])
-          console.log(`🔄 [${input.userId}] 返回模拟图片，大小: ${mockImageBuffer.length} 字节`)
-          return { resultImageBuffer: mockImageBuffer }
-        }
-        
-        const resultBuffer = Buffer.from(textOnlyImagePart.inlineData.data, 'base64')
-        console.log(`✅ [${input.userId}] 备用模型成功生成图片，大小: ${resultBuffer.length} 字节`)
-        const apiEndTime = Date.now()
-        const apiDuration = apiEndTime - apiStartTime
-        console.log(`✅ [${input.userId}] Google API 图片生成完成，耗时: ${apiDuration}ms`)
-        return { resultImageBuffer: resultBuffer }
+        console.log(`🔄 [${input.userId}] 返回模拟图片，大小: ${mockImageBuffer.length} 字节`)
+        return { resultImageBuffer: mockImageBuffer }
       }
       
       const resultBuffer = Buffer.from(imagePart.inlineData.data, 'base64')
@@ -268,8 +236,8 @@ export class NanoBananaService implements ImageGenService {
   }
 
   private async downloadImage(url: string): Promise<Buffer> {
-    const maxRetries = process.env.VERCEL ? 5 : 3 // 增加重试次数
-    const baseTimeout = process.env.VERCEL ? 5000 : 10000 // 减少单次超时时间，但增加重试次数
+    const maxRetries = process.env.VERCEL ? 8 : 5 // 进一步增加重试次数
+    const baseTimeout = process.env.VERCEL ? 8000 : 15000 // 延长单次超时时间
     
     console.log(`📥 [图片下载] 开始下载图片: ${url}`)
     console.log(`📥 [图片下载] 最大重试次数: ${maxRetries}, 基础超时: ${baseTimeout}ms`)
@@ -277,7 +245,7 @@ export class NanoBananaService implements ImageGenService {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         // 使用递增的超时时间，但限制最大超时时间
-        const timeout = Math.min(baseTimeout + (attempt * 2000), 15000) // 最大15秒
+        const timeout = Math.min(baseTimeout + (attempt * 3000), 30000) // 最大30秒
         console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 超时时间: ${timeout}ms`)
         console.log(`📥 [下载尝试 ${attempt + 1}/${maxRetries}] 开始fetch请求...`)
         
@@ -350,8 +318,8 @@ export class NanoBananaService implements ImageGenService {
           console.log(`🔄 [图片下载] 准备进行第 ${attempt + 2} 次重试...`)
         }
         
-        // 等待后重试，使用更短的延迟
-        const delay = process.env.VERCEL ? 500 * (attempt + 1) : 1000 * (attempt + 1)
+        // 等待后重试，使用更长的延迟
+        const delay = process.env.VERCEL ? 1000 * (attempt + 1) : 2000 * (attempt + 1)
         console.log(`⏳ 等待 ${delay}ms 后重试...`)
         await new Promise(resolve => setTimeout(resolve, delay))
       }
@@ -419,8 +387,8 @@ export class NanoBananaService implements ImageGenService {
    */
   private async callWithRetry<T>(
     apiCall: () => Promise<T>,
-    maxRetries: number = process.env.VERCEL ? 1 : this.config.maxRetries, // Vercel环境减少重试次数
-    baseDelay: number = process.env.VERCEL ? 500 : this.config.retryDelay // Vercel环境使用更短延迟
+    maxRetries: number = process.env.VERCEL ? 3 : this.config.maxRetries, // Vercel环境增加重试次数
+    baseDelay: number = process.env.VERCEL ? 2000 : this.config.retryDelay // Vercel环境使用更长延迟
   ): Promise<T> {
     let lastError: Error | null = null
     console.log(`🔄 [重试机制] 最大重试次数: ${maxRetries}, 基础延迟: ${baseDelay}ms`)
