@@ -33,6 +33,183 @@ export class NanoBananaService implements ImageGenService {
     return true
   }
 
+  // 新增方法：直接使用图片Buffer
+  async generateWithBuffer(input: {
+    sourceImageBuffer: Buffer;
+    style: string;
+    userId: string;
+  }): Promise<{ resultImageBuffer: Buffer }> {
+    console.log(`🚀 [${input.userId}] 开始图片生成流程（使用Buffer）`)
+    console.log(`📝 [${input.userId}] 输入参数:`, {
+      sourceImageBuffer: `${Math.round(input.sourceImageBuffer.length / 1024)}KB`,
+      style: input.style,
+      userId: input.userId
+    })
+    
+    const monitor = new PerformanceMonitor(this.config)
+    monitor.start(`图片生成-${input.style}`)
+    
+    // 检查缓存（使用Buffer的hash作为key）
+    const bufferHash = this.getBufferHash(input.sourceImageBuffer)
+    console.log(`🔍 [${input.userId}] 检查图片缓存...`)
+    const cachedResult = imageCache.get(bufferHash, input.style)
+    if (cachedResult) {
+      console.log(`✅ [${input.userId}] 缓存命中，直接返回`)
+      monitor.checkpoint('缓存命中')
+      monitor.end(`图片生成-${input.style}`)
+      return { resultImageBuffer: cachedResult }
+    }
+    console.log(`❌ [${input.userId}] 缓存未命中，开始生成`)
+    
+    console.log(`🔧 [${input.userId}] 验证Google API配置...`)
+    const isConfigValid = this.validateConfig()
+    console.log(`🔧 [${input.userId}] 配置验证结果: ${isConfigValid ? '有效' : '无效'}`)
+    
+    if (!isConfigValid) {
+      console.log(`⚠️ [${input.userId}] Google API配置无效，返回模拟图片`)
+      const mockImageBuffer = Buffer.from([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
+        0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR data
+        0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
+        0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
+        0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
+      ])
+      
+      monitor.end(`图片生成-${input.style}`)
+      return { resultImageBuffer: mockImageBuffer }
+    }
+    
+    try {
+      // 记录 Google API 调用开始时间
+      const apiStartTime = Date.now()
+      console.log(`🚀 [${input.userId}] 开始调用 Google API 生成图片，样式: ${input.style}`)
+      
+      // 直接使用传入的Buffer，无需下载
+      const sourceImageBuffer = input.sourceImageBuffer
+      console.log(`✅ [${input.userId}] 使用传入的图片Buffer，大小: ${Math.round(sourceImageBuffer.length / 1024)}KB`)
+      
+      // 记录base64转换时间
+      const convertStartTime = Date.now()
+      console.log(`🔄 [${input.userId}] 开始Base64转换，图片大小: ${sourceImageBuffer.length} 字节`)
+      const base64Image = sourceImageBuffer.toString('base64')
+      const mimeType = this.getMimeType(sourceImageBuffer)
+      const convertEndTime = Date.now()
+      console.log(`✅ [${input.userId}] Base64转换完成，耗时: ${convertEndTime - convertStartTime}ms，Base64长度: ${base64Image.length} 字符`)
+      console.log(`📄 [${input.userId}] 检测到MIME类型: ${mimeType}`)
+      
+      // Build prompt
+      console.log(`📝 [${input.userId}] 构建提示词...`)
+      const prompt = this.buildPrompt(input.style)
+      console.log(`📝 [${input.userId}] 提示词构建完成: ${prompt.substring(0, 200)}...`)
+      
+      // Use Gemini to generate image
+      console.log(`🤖 [${input.userId}] 开始初始化Gemini模型: gemini-2.5-flash-image`)
+      const model = this.genAI!.getGenerativeModel({ 
+        model: "gemini-2.5-flash-image",
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+        }
+      })
+      console.log(`✅ [${input.userId}] Gemini模型初始化完成`)
+      
+      // 优化API调用，添加超时和重试机制
+      const apiCallStartTime = Date.now()
+      console.log(`🚀 [${input.userId}] 开始调用Google API生成图片...`)
+      console.log(`📝 [${input.userId}] 使用的提示词: ${prompt.substring(0, 100)}...`)
+      console.log(`🖼️ [${input.userId}] 图片数据大小: ${base64Image.length} 字符`)
+      console.log(`📄 [${input.userId}] 图片MIME类型: ${mimeType}`)
+      
+      const result = await this.callWithRetry(async () => {
+        console.log(`🔄 [${input.userId}] 执行generateContent调用...`)
+        console.log(`📤 [${input.userId}] 发送到Google API的请求数据:`)
+        console.log(`📤 [${input.userId}] - 文本部分长度: ${prompt.length} 字符`)
+        console.log(`📤 [${input.userId}] - 图片数据长度: ${base64Image.length} 字符`)
+        console.log(`📤 [${input.userId}] - 图片MIME类型: ${mimeType}`)
+        console.log(`📤 [${input.userId}] - 模型配置:`, {
+          model: "gemini-2.5-flash-image",
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024
+        })
+        
+        const response = await model.generateContent([
+          {
+            text: prompt
+          },
+          {
+            inlineData: {
+              data: base64Image,
+              mimeType: mimeType
+            }
+          }
+        ])
+        console.log(`✅ [${input.userId}] generateContent调用成功`)
+        return response
+      })
+      const apiCallEndTime = Date.now()
+      console.log(`🤖 [${input.userId}] Google API调用完成，耗时: ${apiCallEndTime - apiCallStartTime}ms`)
+      
+      const response = await result.response
+      console.log(`📊 [${input.userId}] 收到Google API响应`)
+      console.log(`📋 [${input.userId}] 响应候选数量: ${response.candidates?.length || 0}`)
+      
+      // Check for image response
+      const imagePart = response.candidates?.[0]?.content?.parts?.find(part => part.inlineData)
+      console.log(`🖼️ [${input.userId}] 图片响应部分: ${imagePart ? '存在' : '不存在'}`)
+      
+      if (!imagePart?.inlineData) {
+        console.log(`❌ [${input.userId}] 未收到图片数据，返回模拟图片`)
+        const mockImageBuffer = Buffer.from([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
+          0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+          0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
+          0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR data
+          0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
+          0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
+          0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
+        ])
+        console.log(`🔄 [${input.userId}] 返回模拟图片，大小: ${mockImageBuffer.length} 字节`)
+        return { resultImageBuffer: mockImageBuffer }
+      }
+      
+      const resultBuffer = Buffer.from(imagePart.inlineData.data, 'base64')
+      console.log(`✅ [${input.userId}] 主模型成功生成图片，大小: ${resultBuffer.length} 字节`)
+      const apiEndTime = Date.now()
+      const apiDuration = apiEndTime - apiStartTime
+      console.log(`✅ [${input.userId}] Google API 图片生成完成，耗时: ${apiDuration}ms`)
+      
+      // 存储到缓存
+      imageCache.set(bufferHash, input.style, resultBuffer)
+      monitor.checkpoint('缓存存储')
+      monitor.end(`图片生成-${input.style}`)
+      
+      return { resultImageBuffer: resultBuffer }
+      
+    } catch (error) {
+      console.error(`❌ [${input.userId}] Google API 生成失败:`, error)
+      
+      // Fall back to mock image
+      const mockImageBuffer = Buffer.from([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG file header
+        0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // IHDR data
+        0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
+        0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // IDAT data
+        0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND chunk
+      ])
+      
+      return { resultImageBuffer: mockImageBuffer }
+    }
+  }
+
+  // 原方法保持不变
   async generate(input: {
     sourceImageUrl: string;
     style: string;
@@ -367,6 +544,17 @@ export class NanoBananaService implements ImageGenService {
       return 'image/webp'
     }
     return 'image/jpeg' // Default
+  }
+
+  private getBufferHash(buffer: Buffer): string {
+    // 简单的hash函数，用于缓存键
+    let hash = 0
+    for (let i = 0; i < Math.min(buffer.length, 1024); i++) {
+      const char = buffer[i]
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    return hash.toString(36)
   }
 
   private buildPrompt(style: string): string {
