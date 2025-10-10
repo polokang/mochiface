@@ -92,17 +92,16 @@ export async function POST(request: NextRequest) {
           console.error(`❌ [${generation.id}] 异步图片生成任务失败:`, error)
           // 更新数据库状态为失败
           try {
-            const { data: failResult, error: failError } = await supabase
-              .rpc('update_generation_status', {
-                p_id: generation.id,
-                p_status: 'failed',
-                p_error_message: error instanceof Error ? error.message : 'Unknown error'
+            const { error: failError } = await supabase
+              .from('generated_images')
+              .update({
+                status: 'failed',
+                error_message: error instanceof Error ? error.message : 'Unknown error'
               })
+              .eq('id', generation.id)
             
             if (failError) {
               console.error(`❌ [${generation.id}] 更新失败状态时出错:`, failError)
-            } else if (!failResult) {
-              console.error(`❌ [${generation.id}] 更新失败状态失败：记录未找到`)
             } else {
               console.log(`✅ [${generation.id}] 失败状态更新成功`)
             }
@@ -143,17 +142,16 @@ async function processImageGeneration(
   const timeout = setTimeout(async () => {
     console.error(`⏰ [${generationId}] 图片生成任务超时，强制更新状态为失败`)
     try {
-      const { data: timeoutResult, error: timeoutError } = await supabase
-        .rpc('update_generation_status', {
-          p_id: generationId,
-          p_status: 'failed',
-          p_error_message: 'Task timeout after 5 minutes'
+      const { error: timeoutError } = await supabase
+        .from('generated_images')
+        .update({
+          status: 'failed',
+          error_message: 'Task timeout after 5 minutes'
         })
+        .eq('id', generationId)
       
       if (timeoutError) {
         console.error(`❌ [${generationId}] 超时后更新状态失败:`, timeoutError)
-      } else if (!timeoutResult) {
-        console.error(`❌ [${generationId}] 超时后更新状态失败：记录未找到`)
       } else {
         console.log(`✅ [${generationId}] 超时状态更新成功`)
       }
@@ -165,20 +163,14 @@ async function processImageGeneration(
   try {
     // 更新状态为运行中
     console.log(`🔄 [${generationId}] 更新数据库状态为运行中...`)
-    const { data: updateResult, error: updateError } = await supabase
-      .rpc('update_generation_status', {
-        p_id: generationId,
-        p_status: 'running'
-      })
+    const { error: updateError } = await supabase
+      .from('generated_images')
+      .update({ status: 'running' })
+      .eq('id', generationId)
     
     if (updateError) {
       console.error(`❌ [${generationId}] 更新状态为运行中失败:`, updateError)
       throw new Error(`Failed to update status to running: ${updateError.message}`)
-    }
-    
-    if (!updateResult) {
-      console.error(`❌ [${generationId}] 更新状态为运行中失败：记录未找到`)
-      throw new Error('Generation record not found')
     }
     
     console.log(`✅ [${generationId}] 数据库状态更新完成`)
@@ -219,21 +211,17 @@ async function processImageGeneration(
 
     // 更新生成记录为成功
     console.log(`🔄 [${generationId}] 更新数据库状态为成功...`)
-    const { data: successResult, error: successError } = await supabase
-      .rpc('update_generation_status', {
-        p_id: generationId,
-        p_status: 'success',
-        p_result_image_url: resultImageUrl
+    const { error: successError } = await supabase
+      .from('generated_images')
+      .update({
+        status: 'success',
+        result_image_url: resultImageUrl
       })
+      .eq('id', generationId)
     
     if (successError) {
       console.error(`❌ [${generationId}] 更新状态为成功失败:`, successError)
       throw new Error(`Failed to update status to success: ${successError.message}`)
-    }
-    
-    if (!successResult) {
-      console.error(`❌ [${generationId}] 更新状态为成功失败：记录未找到`)
-      throw new Error('Generation record not found for success update')
     }
     
     console.log(`✅ [${generationId}] 成功状态更新完成`)
@@ -254,17 +242,16 @@ async function processImageGeneration(
     
     // 更新生成记录为失败
     console.log(`🔄 [${generationId}] 更新数据库状态为失败...`)
-    const { data: failResult, error: failError } = await supabase
-      .rpc('update_generation_status', {
-        p_id: generationId,
-        p_status: 'failed',
-        p_error_message: error instanceof Error ? error.message : 'Unknown error'
+    const { error: failError } = await supabase
+      .from('generated_images')
+      .update({
+        status: 'failed',
+        error_message: error instanceof Error ? error.message : 'Unknown error'
       })
+      .eq('id', generationId)
     
     if (failError) {
       console.error(`❌ [${generationId}] 更新状态为失败时出错:`, failError)
-    } else if (!failResult) {
-      console.error(`❌ [${generationId}] 更新状态为失败失败：记录未找到`)
     } else {
       console.log(`✅ [${generationId}] 数据库状态更新为失败完成`)
     }
