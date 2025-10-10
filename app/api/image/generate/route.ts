@@ -83,40 +83,43 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 异步处理图片生成
-    console.log(`🚀 [${requestId}] 启动异步图片生成任务，生成ID: ${generation.id}`)
-    // 使用 setImmediate 确保异步函数在下一个事件循环中执行
-    setImmediate(() => {
-      processImageGeneration(generation.id, sourceImageUrl, style, user.user_id)
-        .catch(async (error) => {
-          console.error(`❌ [${generation.id}] 异步图片生成任务失败:`, error)
-          // 更新数据库状态为失败
-          try {
-            const { error: failError } = await supabase
-              .from('generated_images')
-              .update({
-                status: 'failed',
-                error_message: error instanceof Error ? error.message : 'Unknown error'
-              })
-              .eq('id', generation.id)
-            
-            if (failError) {
-              console.error(`❌ [${generation.id}] 更新失败状态时出错:`, failError)
-            } else {
-              console.log(`✅ [${generation.id}] 失败状态更新成功`)
-            }
-          } catch (dbError) {
-            console.error(`❌ [${generation.id}] 更新失败状态时异常:`, dbError)
-          }
-        })
-    })
-
-    console.log(`✅ [${requestId}] 图片生成请求处理完成`)
-    return NextResponse.json({
-      id: generation.id,
-      status: 'queued',
-      message: 'Generation task created, please check results later'
-    })
+    // 同步处理图片生成
+    console.log(`🚀 [${requestId}] 开始同步图片生成任务，生成ID: ${generation.id}`)
+    
+    try {
+      // 直接调用图片生成函数并等待完成
+      await processImageGeneration(generation.id, sourceImageUrl, style, user.user_id)
+      
+      console.log(`✅ [${requestId}] 图片生成任务完成`)
+      return NextResponse.json({
+        id: generation.id,
+        status: 'success',
+        message: 'Image generation completed successfully'
+      })
+      
+    } catch (error) {
+      console.error(`❌ [${requestId}] 图片生成任务失败:`, error)
+      
+      // 更新数据库状态为失败
+      try {
+        await supabase
+          .from('generated_images')
+          .update({
+            status: 'failed',
+            error_message: error instanceof Error ? error.message : 'Unknown error'
+          })
+          .eq('id', generation.id)
+        console.log(`✅ [${requestId}] 失败状态更新成功`)
+      } catch (dbError) {
+        console.error(`❌ [${requestId}] 更新失败状态时出错:`, dbError)
+      }
+      
+      return NextResponse.json({
+        id: generation.id,
+        status: 'failed',
+        error: error instanceof Error ? error.message : 'Image generation failed'
+      }, { status: 500 })
+    }
 
   } catch (error) {
     console.error('Generate image error:', error)
@@ -137,28 +140,6 @@ async function processImageGeneration(
   console.log(`📝 [${generationId}] 参数 - 源图片: ${sourceImageUrl}, 样式: ${style}, 用户: ${userId}`)
   
   const supabase = createServiceClient()
-  
-  // 添加超时机制
-  const timeout = setTimeout(async () => {
-    console.error(`⏰ [${generationId}] 图片生成任务超时，强制更新状态为失败`)
-    try {
-      const { error: timeoutError } = await supabase
-        .from('generated_images')
-        .update({
-          status: 'failed',
-          error_message: 'Task timeout after 5 minutes'
-        })
-        .eq('id', generationId)
-      
-      if (timeoutError) {
-        console.error(`❌ [${generationId}] 超时后更新状态失败:`, timeoutError)
-      } else {
-        console.log(`✅ [${generationId}] 超时状态更新成功`)
-      }
-    } catch (error) {
-      console.error(`❌ [${generationId}] 超时后更新状态异常:`, error)
-    }
-  }, 5 * 60 * 1000) // 5分钟超时
   
   try {
     // 更新状态为运行中
@@ -229,14 +210,9 @@ async function processImageGeneration(
     const dbEndTime = Date.now()
     const dbDuration = dbEndTime - dbStartTime
     console.log(`✅ [${userId}] 数据库操作完成，耗时: ${dbDuration}ms`)
-
-    // 清除超时定时器
-    clearTimeout(timeout)
     console.log(`✅ [${generationId}] 图片生成任务成功完成`)
 
   } catch (error) {
-    // 清除超时定时器
-    clearTimeout(timeout)
     console.error(`❌ [${generationId}] 图片生成处理错误:`, error)
     console.error(`❌ [${generationId}] 错误详情:`, error instanceof Error ? error.message : 'Unknown error')
     
