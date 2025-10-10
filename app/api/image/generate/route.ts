@@ -48,17 +48,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 解析表单数据，直接接收图片文件
-    const formData = await request.formData()
-    const imageFile = formData.get('image') as File
-    const style = formData.get('style') as string
+    // 检测请求类型并相应处理
+    const contentType = request.headers.get('content-type') || ''
+    let imageFile: File | null = null
+    let style: string = ''
+    let sourceImageUrl: string = ''
 
-    console.log(`📝 [${requestId}] 请求参数 - 图片文件: ${imageFile?.name}, 样式: ${style}`)
+    if (contentType.includes('multipart/form-data')) {
+      // 处理文件上传
+      console.log(`📝 [${requestId}] 检测到文件上传请求`)
+      const formData = await request.formData()
+      imageFile = formData.get('image') as File
+      style = formData.get('style') as string
+      console.log(`📝 [${requestId}] 请求参数 - 图片文件: ${imageFile?.name}, 样式: ${style}`)
+    } else {
+      // 处理JSON请求（兼容旧版本）
+      console.log(`📝 [${requestId}] 检测到JSON请求`)
+      const body = await request.json()
+      sourceImageUrl = body.sourceImageUrl
+      style = body.style
+      console.log(`📝 [${requestId}] 请求参数 - 源图片: ${sourceImageUrl}, 样式: ${style}`)
+    }
 
-    if (!imageFile || !style) {
+    if ((!imageFile && !sourceImageUrl) || !style) {
       console.log(`❌ [${requestId}] 缺少必要参数`)
       return NextResponse.json(
-        { error: 'Image file and style are required' },
+        { error: 'Image file/URL and style are required' },
         { status: 400 }
       )
     }
@@ -75,42 +90,51 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 处理上传的图片文件
-    console.log(`📸 [${requestId}] 开始处理上传的图片文件...`)
-    const arrayBuffer = await imageFile.arrayBuffer()
-    const imageBuffer = Buffer.from(arrayBuffer)
-    console.log(`📊 [${requestId}] 图片大小: ${Math.round(imageBuffer.length / 1024)}KB`)
-    
-    // 压缩图片（如果需要）
-    let processedImageBuffer: Buffer = imageBuffer
-    if (imageBuffer.length > 3 * 1024 * 1024) { // 如果大于3MB
-      console.log(`📦 [${requestId}] 图片过大，进行压缩处理...`)
-      processedImageBuffer = await compressImage(imageBuffer)
-      console.log(`📦 [${requestId}] 压缩后大小: ${Math.round(processedImageBuffer.length / 1024)}KB`)
-    }
-
-    // 上传压缩后的图片到 Supabase Storage
+    // 根据请求类型处理图片
+    let processedImageBuffer: Buffer | null = null
+    let finalSourceImageUrl = sourceImageUrl
     const supabase = createServiceClient()
-    const fileName = `source_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`
-    const filePath = `uploads/${fileName}`
-    
-    console.log(`📤 [${requestId}] 上传压缩图片到 Supabase Storage: ${filePath}`)
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('mochiface-bucket')
-      .upload(filePath, processedImageBuffer, {
-        contentType: 'image/jpeg'
-      })
 
-    if (uploadError) {
-      console.log(`❌ [${requestId}] 图片上传失败:`, uploadError)
-      return NextResponse.json(
-        { error: 'Failed to upload image' },
-        { status: 500 }
-      )
+    if (imageFile) {
+      // 处理文件上传
+      console.log(`📸 [${requestId}] 开始处理上传的图片文件...`)
+      const arrayBuffer = await imageFile.arrayBuffer()
+      const imageBuffer = Buffer.from(arrayBuffer)
+      console.log(`📊 [${requestId}] 图片大小: ${Math.round(imageBuffer.length / 1024)}KB`)
+      
+      // 压缩图片（如果需要）
+      processedImageBuffer = imageBuffer
+      if (imageBuffer.length > 3 * 1024 * 1024) { // 如果大于3MB
+        console.log(`📦 [${requestId}] 图片过大，进行压缩处理...`)
+        processedImageBuffer = await compressImage(imageBuffer)
+        console.log(`📦 [${requestId}] 压缩后大小: ${Math.round(processedImageBuffer.length / 1024)}KB`)
+      }
+
+      // 上传压缩后的图片到 Supabase Storage
+      const fileName = `source_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`
+      const filePath = `uploads/${fileName}`
+      
+      console.log(`📤 [${requestId}] 上传压缩图片到 Supabase Storage: ${filePath}`)
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('mochiface-bucket')
+        .upload(filePath, processedImageBuffer, {
+          contentType: 'image/jpeg'
+        })
+
+      if (uploadError) {
+        console.log(`❌ [${requestId}] 图片上传失败:`, uploadError)
+        return NextResponse.json(
+          { error: 'Failed to upload image' },
+          { status: 500 }
+        )
+      }
+
+      finalSourceImageUrl = getSupabaseStorageUrl('mochiface-bucket', uploadData.path)
+      console.log(`✅ [${requestId}] 图片上传成功: ${finalSourceImageUrl}`)
+    } else {
+      // 使用URL方式，稍后下载
+      console.log(`📸 [${requestId}] 使用图片URL: ${sourceImageUrl}`)
     }
-
-    const sourceImageUrl = getSupabaseStorageUrl('mochiface-bucket', uploadData.path)
-    console.log(`✅ [${requestId}] 图片上传成功: ${sourceImageUrl}`)
 
     // 创建生成记录
     console.log(`🗄️ [${requestId}] 创建数据库记录...`)
@@ -118,7 +142,7 @@ export async function POST(request: NextRequest) {
       .from('generated_images')
       .insert({
         user_id: user.user_id,
-        source_image_url: sourceImageUrl,
+        source_image_url: finalSourceImageUrl,
         style: style,
         status: 'queued'
       })
@@ -145,12 +169,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 同步处理图片生成（直接使用已处理的图片）
+    // 同步处理图片生成
     console.log(`🚀 [${requestId}] 开始同步图片生成任务，生成ID: ${generation.id}`)
     
     try {
-      // 直接调用图片生成函数，传入已处理的图片Buffer
-      await processImageGenerationWithBuffer(generation.id, processedImageBuffer, style, user.user_id)
+      if (processedImageBuffer) {
+        // 使用已处理的图片Buffer
+        console.log(`📸 [${requestId}] 使用已处理的图片Buffer`)
+        await processImageGenerationWithBuffer(generation.id, processedImageBuffer, style, user.user_id)
+      } else {
+        // 使用URL方式（兼容旧版本）
+        console.log(`📸 [${requestId}] 使用图片URL方式`)
+        await processImageGeneration(generation.id, finalSourceImageUrl, style, user.user_id)
+      }
       
       console.log(`✅ [${requestId}] 图片生成任务完成`)
       return NextResponse.json({
